@@ -29,7 +29,7 @@ public struct Vector2Int : IEquatable<Vector2Int>
 	{
 		readonly get
 		{
-			return vec.X.FloorToInt();
+			return (int)vec.X;
 		}
 		set
 		{
@@ -41,7 +41,7 @@ public struct Vector2Int : IEquatable<Vector2Int>
 	{
 		readonly get
 		{
-			return vec.Y.FloorToInt();
+			return (int)vec.Y;
 		}
 		set
 		{
@@ -81,7 +81,7 @@ public struct Vector2Int : IEquatable<Vector2Int>
 	{
 	}
 	public Vector2Int( float x, float y )
-		: this( new System.Numerics.Vector2( x.FloorToInt(), y.FloorToInt() ) )
+		: this( new System.Numerics.Vector2( (int)x, (int)y ) )
 	{
 	}
 

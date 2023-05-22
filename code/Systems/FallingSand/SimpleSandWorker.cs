@@ -79,13 +79,20 @@ public class SimpleSandWorker : Sandworker
 	{
 		//using var _c = Profile.Scope( "MoveDownSides" );
 		bool downleft = IsEmpty( pos + Vector2Int.Down + Vector2Int.Left );
-		bool downright = IsEmpty( pos + Vector2Int.Down + Vector2Int.Right );
-		if ( downleft && downright )
+		bool downright = false;
+		if ( downleft )
 		{
-			//using var _d = Profile.Scope( "MoveDownSides::Random" );
 			downleft = Game.Random.Float() > 0.5f;
-			downright = !downleft;
+			if ( downleft )
+			{
+				downright = IsEmpty( pos + Vector2Int.Down + Vector2Int.Right );
+			}
 		}
+		else
+		{
+			downright = IsEmpty( pos + Vector2Int.Down + Vector2Int.Right );
+		}
+
 
 		var oldvel = new Vector2Int();
 
@@ -112,25 +119,31 @@ public class SimpleSandWorker : Sandworker
 	private bool MoveSides( Vector2Int pos, ref Cell c, ref bool sleep )
 	{
 		//using var _c = Profile.Scope( "MoveDownSides" );
-		bool downleft = IsEmpty( pos + (Vector2Int.Left) );
-		bool downright = IsEmpty( pos + (Vector2Int.Right) );
-		if ( downleft && downright )
+		bool downleft = IsEmpty( pos + Vector2Int.Left );
+		bool downright = false;
+		if ( downleft )
 		{
-			//using var _d = Profile.Scope( "MoveDownSides::Random" );
 			downleft = Game.Random.Float() > 0.5f;
-			downright = !downleft;
+			if ( downleft )
+			{
+				downright = IsEmpty( pos + Vector2Int.Right );
+			}
+		}
+		else
+		{
+			downright = IsEmpty( pos + Vector2Int.Right );
 		}
 
-		var oldvel = GetCell( pos ).Velocity;
+		var oldvel = c.Velocity;
 
 		if ( downleft )
 		{
-			oldvel += Vector2Int.Left * Game.Random.Int( 1, 10 );
+			oldvel += Vector2Int.Left * Game.Random.Int( 1, 3 );
 			//MoveCell( pos, pos + Vector2Int.Left, false );
 		}
 		else if ( downright )
 		{
-			oldvel += Vector2Int.Right * Game.Random.Int( 1, 10 );
+			oldvel += Vector2Int.Right * Game.Random.Int( 1, 3 );
 			//MoveCell( pos, pos + Vector2Int.Right, false );
 		}
 		//using var _e = Profile.Scope( "MoveDownSides::Finalize" );
@@ -200,7 +213,7 @@ public class SimpleSandWorker : Sandworker
 		}
 
 		//sort by destination
-		chunk.Changes.Sort( ( a, b ) => a.To.Distance( b.To ).FloorToInt() );
+		chunk.Changes.Sort( ( a, b ) => (int)a.To.Distance( b.To ) );
 
 		//pick random source for each destination
 
