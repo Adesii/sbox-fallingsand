@@ -10,67 +10,76 @@ public class SimpleSandWorker : Sandworker
 	{
 	}
 
-	public override void UpdateCell( Vector2Int Position )
+	public override void UpdateCell( Vector2Int Position, ref bool sleep )
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) ) return;
-		Cell cell = chunk.GetCell( Position );
+		Cell c = chunk.GetCell( Position );
 
-		if ( cell.type == 0 ) return;
+		if ( c.type == 0 ) return;
 		//Sand
-		if ( cell.type == 1 )
+		if ( c.type == 1 )
 		{
-			if ( MoveDown( Position ) )
+			if ( MoveDown( Position, ref c, ref sleep ) )
 				return;
-			if ( MoveDownSides( Position ) )
+			if ( MoveDownSides( Position, ref c, ref sleep ) )
 				return;
 		}
 		//water
-		if ( cell.type == 2 )
+		if ( c.type == 2 )
 		{
-			if ( MoveDown( Position ) )
+			if ( MoveDown( Position, ref c, ref sleep ) )
 				return;
-			if ( MoveDownSides( Position ) )
+			if ( MoveDownSides( Position, ref c, ref sleep ) )
 				return;
-			if ( MoveSides( Position ) )
+			if ( MoveSides( Position, ref c, ref sleep ) )
 				return;
 		}
+
+		sleep = true;
 	}
 
 
 
 
-	private bool MoveDown( Vector2Int pos )
+	private bool MoveDown( Vector2Int pos, ref Cell c, ref bool sleep )
 	{
 		//using var _b = Profile.Scope( "MoveDown" );
-		var odl = GetCell( pos );
+		var odl = c;
 		var other = GetCell( pos + Vector2Int.Down );
-		bool boyouend = other.bouyancy >= odl.bouyancy;
+		bool boyouend = other.Density > odl.Density;
 		if ( boyouend )
 		{
-			SetCell( pos, other );
-			SetCell( pos + Vector2Int.Down, odl );
+			QuickSwap( pos, pos + Vector2Int.Down, ref c, ref other );
 			//return true;
 		}
-		if ( other.type == 0 )
+		if ( other.type == 0 && odl.type != other.type )
 		{
 			var oldvel = odl.Velocity;
 			oldvel += Vector2Int.Down * 1;
 			FinalizeMove( pos, oldvel, boyouend );
 			SetCellVelocity( pos, oldvel );
+			//Log.Info( $"MoveDown: {oldvel}" );
+
+			sleep = true;
 			//MoveCell( pos, pos + Vector2Int.Down * 2, false );
 			return true;
 		}
+		sleep = false;
 		//cell.Velocity = Vector2.Zero;
 		return false;
 	}
 
-	private bool MoveDownSides( Vector2Int pos )
+	private void QuickSwap( Vector2Int pos, Vector2Int pos2, ref Cell a, ref Cell b )
 	{
+		SetCell( pos, b, true );
+		SetCell( pos2, a, true );
+	}
 
-
+	private bool MoveDownSides( Vector2Int pos, ref Cell c, ref bool sleep )
+	{
 		//using var _c = Profile.Scope( "MoveDownSides" );
-		bool downleft = IsEmpty( pos + (Vector2Int.Down + Vector2Int.Left) );
-		bool downright = IsEmpty( pos + (Vector2Int.Down + Vector2Int.Right) );
+		bool downleft = IsEmpty( pos + Vector2Int.Down + Vector2Int.Left );
+		bool downright = IsEmpty( pos + Vector2Int.Down + Vector2Int.Right );
 		if ( downleft && downright )
 		{
 			//using var _d = Profile.Scope( "MoveDownSides::Random" );
@@ -83,6 +92,7 @@ public class SimpleSandWorker : Sandworker
 		if ( downleft )
 		{
 			oldvel = Vector2Int.Down + Vector2Int.Left;
+
 			//MoveCell( pos, pos + Vector2Int.Down + Vector2Int.Left, false );
 		}
 		else if ( downright )
@@ -91,12 +101,15 @@ public class SimpleSandWorker : Sandworker
 			//MoveCell( pos, pos + Vector2Int.Down + Vector2Int.Right, false );
 		}
 		//using var _e = Profile.Scope( "MoveDownSides::Finalize" );
-		FinalizeMove( pos, oldvel );
+		if ( downleft || downright )
+			FinalizeMove( pos, oldvel );
+
+		sleep = (downleft || downright);
 
 		return downleft || downright;
 	}
 
-	private bool MoveSides( Vector2Int pos )
+	private bool MoveSides( Vector2Int pos, ref Cell c, ref bool sleep )
 	{
 		//using var _c = Profile.Scope( "MoveDownSides" );
 		bool downleft = IsEmpty( pos + (Vector2Int.Left) );
@@ -121,7 +134,10 @@ public class SimpleSandWorker : Sandworker
 			//MoveCell( pos, pos + Vector2Int.Right, false );
 		}
 		//using var _e = Profile.Scope( "MoveDownSides::Finalize" );
-		FinalizeMove( pos, oldvel );
+		if ( downleft || downright )
+			FinalizeMove( pos, oldvel );
+
+		sleep = (downleft || downright);
 
 		return downleft || downright;
 	}
@@ -143,7 +159,7 @@ public class SimpleSandWorker : Sandworker
 			MoveCell( NewPos, pos, swap );
 			SetCellVelocity( pos, !swap ? vel : NewVel );
 		}
-		SetCellVelocity( NewPos, !swap ? Vector2Int.Zero : NewVel );
+		SetCellVelocity( NewPos, Vector2Int.Zero );
 	}
 
 
@@ -211,8 +227,8 @@ public class SimpleSandWorker : Sandworker
 					//cells[dst] = cells[src];
 					//cells[src] = default;
 					var idk = sourcchunk.GetCell( src );
-					SetCell( dst, idk );
-					sourcchunk.SetCell( src, new() );
+					SetCell( dst, idk, true );
+					sourcchunk.SetCell( src, new(), true );
 				}
 				else
 				{
@@ -221,8 +237,30 @@ public class SimpleSandWorker : Sandworker
 					//cells[src] = temp;
 
 					var temp = sourcchunk.GetCell( dst );
-					SetCell( dst, sourcchunk.GetCell( src ) );
-					sourcchunk.SetCell( src, temp );
+					SetCell( dst, sourcchunk.GetCell( src ), true );
+					sourcchunk.SetCell( src, temp, true );
+				}
+
+				if ( sourcchunk != chunk )
+					sourcchunk.ShouldWakeup = true;
+				//Log.Info( $"dst {dst - chunk.Position}, src {src - chunk.Position}" );
+				Vector2Int localdst = dst - chunk.Position;
+				Vector2Int localsrc = src - chunk.Position;
+				Vector2Int Dir = (dst - src).Normal;
+				if ( /* localdst.y <= chunk.Size.y / 4 || localsrc.y <= chunk.Size.y / 4 || */ localdst.y >= chunk.Size.y / 4 || localsrc.y >= chunk.Size.y / 4 )
+				{
+					//wake up upper chunk
+					if ( wworld.TryGetTarget( out var world ) )
+					{
+						var c = world.GetChunk( new Vector2Int( chunk.Position.x, chunk.Position.y ) - (Dir * chunk.Size) );
+						if ( c != null )
+						{
+							c.sleeping = true;
+							c.ShouldWakeup = true;
+
+						}
+					}
+
 				}
 				//DrawPixel( dst, srcell.color );
 				iprev = i + 1;

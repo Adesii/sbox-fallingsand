@@ -35,7 +35,7 @@ public class SandDisplay : Panel
 			newpos.y = state.Height - newpos.y;
 			newpos.y -= state.Height;
 			newpos.x -= state.Width / 2f;
-			newpos = SandWorld.Instance.ToLocal( newpos );
+			newpos = SandWorld.Instance.ToLocal( newpos * ScaleToScreen );
 			SandWorld.SetCellBrush( (int)(newpos.x / 2), (int)(newpos.y / 2), 10, typeToUse );
 		}
 		//var attribsss = new RenderAttributes();
@@ -47,10 +47,11 @@ public class SandDisplay : Panel
 			if ( chunk.Value.Texture == null || !chunk.Value.Texture.IsLoaded ) continue;
 			var attribs = new RenderAttributes();
 			attribs.Set( "Texture", chunk.Value.Texture );
-			Rect rect = new( new Vector2( chunk.Key.x * chunk.Value.Size.x * ScaleFromScreen / Screen.Aspect, (chunk.Value.Size.y - ((chunk.Value.Size.y * chunk.Key.y))) * ScaleFromScreen / Screen.Aspect ), new Vector2( SandWorld.ChunkWidth, SandWorld.ChunkHeight ) / 2 );
-			rect *= 2.5f;
-			rect.Position += new Vector2( 1000, 0 );
-			//DebugOverlay.Texture( Texture.Transparent, rect );
+			Rect rect = new( new Vector2( chunk.Key.x * chunk.Value.Size.x * ScaleToScreen /* * Screen.Aspect */, (chunk.Value.Size.y - ((chunk.Value.Size.y * chunk.Key.y))) * ScaleToScreen /* * Screen.Aspect  */), new Vector2( SandWorld.ChunkWidth, SandWorld.ChunkHeight ) * ScaleToScreen /* * Screen.Aspect */ );
+			//rect *= 2.5f;
+			rect.Position += new Vector2( SandWorld.ChunkWidth * 14, SandWorld.ChunkHeight - 10 ) * ScaleToScreen;
+			if ( chunk.Value.sleeping && chunk.Value.SleepTime < 0.3f )
+				DebugOverlay.Texture( Texture.Transparent, rect, 0.2f );
 
 			Graphics.DrawQuad( rect, Material.FromShader( "shaders/sanddrawer.shader" ), Color.White, attribs );
 		}

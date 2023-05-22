@@ -44,9 +44,9 @@ public class SandWorld
 		return GetChunk( pos )?.GetCell( pos ) ?? new Cell();
 	}
 
-	public void SetCell( Vector2Int pos, Cell cell )
+	public void SetCell( Vector2Int pos, Cell cell, bool wake = false )
 	{
-		GetChunk( pos ).SetCell( pos, cell );
+		GetChunk( pos ).SetCell( pos, cell, wake );
 	}
 
 
@@ -137,17 +137,17 @@ public class SandWorld
 		//brown sand
 		if ( type == 1 )
 		{
-			cell.bouyancy = 9;
+			cell.Density = 9;
 			cell.color = new Color( 0.5f, 0.4f, 0.3f );
 		}
 		//blue water
 		if ( type == 2 )
 		{
-			cell.bouyancy = 10;
+			cell.Density = 10;
 			cell.color = new Color( 0.3f, 0.4f, 0.5f );
 		}
 
-		Instance.SetCell( new Vector2Int( x, y ), cell );
+		Instance.SetCell( new Vector2Int( x, y ), cell, true );
 		//Log.Info( $"Set cell {x} {y} to {type}" );
 	}
 	[ConCmd.Client]
@@ -190,23 +190,29 @@ public class SandWorld
 	async void RealUpdate()
 	{
 		if ( updating ) return;
-		using var _a = Profile.Scope( "Sandworld::Update" );
+		//using var _a = Profile.Scope( "Sandworld::Update" );
 		updating = true;
 
 
 		List<Task> tasks = new();
-		List<Vector2Int> markedchunks = new();
+		//List<Vector2Int> markedchunks = new(); //TODO: figure out why it crashes all the fucking time
 		//Update Cells
 		foreach ( var chunk in chunks )
 		{
-			tasks.Add( GameTask.RunInThreadAsync( () =>
+			if ( chunk.Value.filledcells > 0 && (!chunk.Value.sleeping && chunk.Value.SleepTime < 1f) || chunk.Value.ShouldWakeup )
+				tasks.Add( GameTask.RunInThreadAsync( () =>
+				{
+					chunk.Value.ShouldWakeup = false;
+					new SimpleSandWorker( this, chunk.Value ).UpdateChunk();
+
+				} ) );
+			/* else
 			{
-				/* if ( chunk.Value.filledcells > 0 ) */
-				new SimpleSandWorker( this, chunk.Value ).UpdateChunk();
-				/* else
-					markedchunks.Add( chunk.Key ); */
-			} ) );
+				markedchunks.Add( chunk.Key );
+			} */
 		}
+
+		DebugOverlay.ScreenText( $"Active Threads: {tasks.Count}", 0 );
 
 		/* for ( int i = 0; i < markedchunks.Count; i++ )
 		{

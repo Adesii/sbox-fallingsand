@@ -16,19 +16,28 @@ public class Sandworker
 	public void UpdateChunk()
 	{
 		if ( wchunk.TryGetTarget( out var nchunk ) )
+		{
+			bool sleep = true;
+			bool shouldsleep = true;
 			for ( int x = 0; x < nchunk.Size.x; x++ )
 			{
 				for ( int y = 0; y < nchunk.Size.y; y++ )
 				{
-					UpdateCell( new Vector2Int( x, y ) + nchunk.Position );
+					UpdateCell( new Vector2Int( x, y ) + nchunk.Position, ref shouldsleep );
+					if ( !shouldsleep )
+					{
+						sleep = false;
+					}
 				}
 			}
+			nchunk.sleeping = sleep;
+		}
+
 	}
 
 
-	public virtual void UpdateCell( Vector2Int Position )
+	public virtual void UpdateCell( Vector2Int Position, ref bool sleep )
 	{
-
 	}
 
 	protected Cell GetCell( Vector2Int pos )
@@ -49,13 +58,13 @@ public class Sandworker
 			world.SetCellVelocity( pos, vel );
 	}
 
-	protected void SetCell( Vector2Int pos, Cell cell )
+	protected void SetCell( Vector2Int pos, Cell cell, bool wake = false )
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return;
 		if ( chunk.InBounds( pos ) )
-			chunk.SetCell( pos, cell );
+			chunk.SetCell( pos, cell, wake );
 		else
-			world.SetCell( pos, cell );
+			world.SetCell( pos, cell, wake );
 	}
 
 	protected void MoveCell( Vector2Int From, Vector2Int To, bool Swap = false )

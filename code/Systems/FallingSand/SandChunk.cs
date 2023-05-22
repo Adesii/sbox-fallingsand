@@ -55,22 +55,24 @@ public class SandChunk
 	}
 
 
-	public void SetCell( Vector2Int pos, Cell cell )
+	public void SetCell( Vector2Int pos, Cell cell, bool wake = false )
 	{
 		if ( !InBounds( pos ) )
 			return;
-		SetCell( GetIndex( pos ), cell );
+		SetCell( GetIndex( pos ), cell, wake );
 	}
-	void SetCell( int index, Cell cell )
+	void SetCell( int index, Cell cell, bool wake = false )
 	{
 		if ( cell.type == 0 && cells[index].type != 0 )
 		{
-			filledcells--;
+			System.Threading.Interlocked.Decrement( ref filledcells );
 		}
 		else if ( cell.type != 0 && cells[index].type == 0 )
 		{
-			filledcells++;
+			System.Threading.Interlocked.Increment( ref filledcells );
 		}
+		//sleeping = false;
+		ShouldWakeup = wake;
 
 		cells[index] = cell;
 		DrawPixel( index, cell.type == 0 ? Color.Transparent : cell.color );
@@ -78,6 +80,7 @@ public class SandChunk
 
 	public void MoveCell( SandChunk src, Vector2Int From, Vector2Int To, bool Swap = false )
 	{
+
 		Changes.Add( new( src, From, To, Swap ) );
 	}
 
@@ -91,6 +94,27 @@ public class SandChunk
 		pixels[x] = color;
 	}
 	Color32[] pixels;
+
+	private bool _sleep;
+	public bool sleeping
+	{
+		set
+		{
+			if ( value )
+			{
+				SleepTime = 0;
+			}
+			_sleep = value;
+		}
+		get
+		{
+			return _sleep;
+		}
+	}
+	public bool ShouldWakeup = false;
+
+	public TimeSince SleepTime = 0;
+
 	public void Draw()
 	{
 		pixels ??= new Color32[Size.x * Size.y];

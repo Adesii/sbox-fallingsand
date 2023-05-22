@@ -6,7 +6,7 @@ public struct Cell
 	public Color color;
 	public Vector2Int Velocity;
 
-	public int bouyancy;
+	public int Density;
 }
 
 public struct CellMoveInfo
