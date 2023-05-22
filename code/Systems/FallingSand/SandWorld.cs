@@ -195,14 +195,24 @@ public class SandWorld
 
 
 		List<Task> tasks = new();
+		List<Vector2Int> markedchunks = new();
 		//Update Cells
-		foreach ( var chunk in chunks.Values )
+		foreach ( var chunk in chunks )
 		{
 			tasks.Add( GameTask.RunInThreadAsync( () =>
 			{
-				new SimpleSandWorker( this, chunk ).UpdateChunk();
+				/* if ( chunk.Value.filledcells > 0 ) */
+				new SimpleSandWorker( this, chunk.Value ).UpdateChunk();
+				/* else
+					markedchunks.Add( chunk.Key ); */
 			} ) );
 		}
+
+		/* for ( int i = 0; i < markedchunks.Count; i++ )
+		{
+			chunks.Remove( markedchunks[i], out _ );
+			i--;
+		} */
 
 		await GameTask.WhenAll( tasks.ToArray() );
 		tasks.Clear();
@@ -215,8 +225,6 @@ public class SandWorld
 		}
 		await GameTask.WhenAll( tasks.ToArray() );
 		tasks.Clear();
-		//await GameTask.DelayRealtimeSeconds( 2f );
-		//RemoveEmptyChunks();
 		updating = false;
 	}
 
