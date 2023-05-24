@@ -6,52 +6,40 @@ public class SandDisplay : Panel
 {
 	public override bool HasContent => true;
 
-	bool drawing = false;
-	int typeToUse = 1;
-
-	protected override void OnMouseDown( MousePanelEvent e )
-	{
-		drawing = true;
-		if ( e.MouseButton == MouseButtons.Right )
-		{
-			typeToUse = 2;
-		}
-		else
-		{
-			typeToUse = 1;
-		}
-
-	}
-	protected override void OnMouseUp( MousePanelEvent e )
-	{
-		drawing = false;
-	}
 	TimeSince LastDraw = 0;
 	public override void DrawContent( ref RenderState state )
 	{
-		if ( drawing && LastDraw > 0.1f )
-		{
-			var newpos = MousePosition / ScaleFromScreen;
-			newpos.y = state.Height - newpos.y;
-			newpos.y -= state.Height;
-			newpos.x -= state.Width / 2f;
-			newpos = SandWorld.Instance.ToLocal( newpos * ScaleToScreen );
-			SandWorld.SetCellBrush( (int)(newpos.x / 2), (int)(newpos.y / 2), 10, typeToUse );
-		}
 		//var attribsss = new RenderAttributes();
 		//attribsss.Set( "Texture", Texture.White );
 		//Graphics.DrawQuad( new Rect( MousePosition, 100 ), Material.UI.Basic, Color.Red, attribsss );
-
+		int line = 5;
 		foreach ( var chunk in SandWorld.Instance.chunks )
 		{
 			if ( chunk.Value.Texture == null || !chunk.Value.Texture.IsLoaded ) continue;
 			var attribs = new RenderAttributes();
 			attribs.Set( "Texture", chunk.Value.Texture );
-			Rect rect = new( new Vector2( chunk.Key.x * chunk.Value.Size.x * ScaleToScreen /* * Screen.Aspect */, (chunk.Value.Size.y - ((chunk.Value.Size.y * chunk.Key.y))) * ScaleToScreen /* * Screen.Aspect  */), new Vector2( SandWorld.ChunkWidth, SandWorld.ChunkHeight ) * ScaleToScreen /* * Screen.Aspect */ );
-			//rect *= 2.5f;
-			rect.Position += new Vector2( SandWorld.ChunkWidth * 14, SandWorld.ChunkHeight - 10 ) * ScaleToScreen;
-			if ( chunk.Value.sleeping && chunk.Value.SleepTime < 0.3f )
-				DebugOverlay.Texture( Texture.Transparent, rect, 0.2f );
+			Rect rect = new( new Vector2( chunk.Key.x * chunk.Value.Size.x, chunk.Value.Size.y - (chunk.Key.y * chunk.Value.Size.y) ), new Vector2( SandWorld.ChunkWidth, SandWorld.ChunkHeight ) ); ;
+			rect.Position += SandWorld.WorldPosition;
+			rect *= ScaleToScreen / ((float)SandWorld.ZoomLevel / 10f);
+
+			if ( !chunk.Value.IsCurrentlySleeping )
+			{
+				//DebugOverlay.Texture( Texture.Transparent, rect, 0.2f );
+				var keepaliverect = new Rect( chunk.Value.rect_minX, chunk.Value.rect_minY, chunk.Value.rect_maxX, chunk.Value.rect_maxY );
+				var top = keepaliverect.Top;
+				var bottom = keepaliverect.Bottom;
+				keepaliverect.Top = -bottom;
+				keepaliverect.Bottom = -top;
+
+				keepaliverect += new Vector2( 0, chunk.Value.Size.y );
+
+
+				keepaliverect *= ScaleToScreen / ((float)SandWorld.ZoomLevel / 10f);
+				keepaliverect.Position += rect.Position;
+
+
+				DebugOverlay.Texture( Texture.Transparent, keepaliverect, 0.2f );
+			}
 
 			Graphics.DrawQuad( rect, Material.FromShader( "shaders/sanddrawer.shader" ), Color.White, attribs );
 		}

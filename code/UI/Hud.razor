@@ -1,0 +1,16 @@
+@namespace Sand.UI
+@attribute [StyleSheet("/UI/Hud.scss")]
+@inherits RootPanel
+
+<root>
+    <SandDisplay />
+</root>
+
+@code {
+    public static Hud Current { get; private set; }
+
+    public Hud()
+    {
+        Current = this;
+    }
+}

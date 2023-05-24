@@ -71,10 +71,10 @@ public struct Vector2Int : IEquatable<Vector2Int>
 
 	public static Vector2Int Random => new Vector2Int( Game.Random.Float( -1f, 1f ), Game.Random.Float( -1f, 1f ) ).Normal * Game.Random.Float( 0f, 1f );
 
-	public Vector2Int( int x )
+	/* public Vector2Int( int x )
 		: this( x, x )
 	{
-	}
+	} */
 
 	public Vector2Int( int x, int y )
 		: this( new System.Numerics.Vector2( x, y ) )
@@ -281,6 +281,11 @@ public struct Vector2Int : IEquatable<Vector2Int>
 	public static bool operator !=( Vector2Int left, Vector2Int right )
 	{
 		return !(left == right);
+	}
+
+	public static explicit operator Vector2( Vector2Int v )
+	{
+		return new Vector2( v.x, v.y );
 	}
 
 	public override bool Equals( object obj )

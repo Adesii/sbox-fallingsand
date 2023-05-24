@@ -5,9 +5,10 @@ public partial class SandGame : GameManager
 {
 	public SandGame()
 	{
-		if ( Game.IsServer )
+		if ( Game.IsClient )
 		{
-			_ = new Hud();
+			Game.RootPanel = new Sand.UI.Hud();
+
 		}
 	}
 

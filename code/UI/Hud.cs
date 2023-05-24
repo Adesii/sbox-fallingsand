@@ -1,15 +1,72 @@
-using Sand.UI;
+using Sand.Systems.FallingSand;
 
-namespace Sand;
+namespace Sand.UI;
 
-public partial class Hud : HudEntity<RootPanel>
+public partial class Hud : RootPanel
 {
-	public Hud()
-	{
-		if ( !Game.IsClient )
-			return;
+	bool leftclick = false;
+	bool rightclick = false;
+	bool middleclick = false;
 
-		RootPanel.StyleSheet.Load( "/UI/Hud.scss" );
-		RootPanel.AddChild<SandDisplay>();
+	public static Vector2 CorrectMousePosition;
+
+
+	public override void OnMouseWheel( float value )
+	{
+		SandWorld.ZoomLevel += value > 0 ? 1 : -1;
+	}
+
+	/* protected override void OnEvent( PanelEvent e )
+	{
+		//base.OnEvent( e );
+		if ( e is MousePanelEvent mpe )
+			Log.Info( $"event {mpe.Name} called for {mpe.Button}" );
+	} */
+	protected override void OnMouseDown( MousePanelEvent e )
+	{
+		switch ( e.MouseButton )
+		{
+			case MouseButtons.Left:
+				leftclick = true;
+				break;
+			case MouseButtons.Right:
+				rightclick = true;
+				break;
+			case MouseButtons.Middle:
+				middleclick = true;
+				break;
+		}
+
+	}
+	protected override void OnMouseUp( MousePanelEvent e )
+	{
+		switch ( e.MouseButton )
+		{
+			case MouseButtons.Left:
+				leftclick = false;
+				break;
+			case MouseButtons.Right:
+				rightclick = false;
+				break;
+			case MouseButtons.Middle:
+				middleclick = false;
+				break;
+		}
+	}
+	bool helleft = false;
+	bool helright = false;
+	[GameEvent.Client.BuildInput]
+	private void passer()
+	{
+		CorrectMousePosition = (MousePosition * (ScaleFromScreen) * ((float)SandWorld.ZoomLevel / 10f));
+		Input.SetAction( "LeftClick", leftclick );
+
+		Input.SetAction( "RightClick", rightclick );
+		Input.SetAction( "MiddleClick", middleclick );
+
+		//if ( Input.Pressed( "zoom" ) )
+		//	Log.Info( "zoom" );
+		//Log.Info( middleclick );
 	}
 }
+

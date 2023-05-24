@@ -19,11 +19,12 @@ public class Sandworker
 		{
 			bool sleep = true;
 			bool shouldsleep = true;
-			for ( int x = 0; x < nchunk.Size.x; x++ )
+
+			for ( int y = nchunk.rect_minY; y < nchunk.rect_maxY; y++ )
 			{
-				for ( int y = 0; y < nchunk.Size.y; y++ )
+				for ( int x = nchunk.rect_minX; x < nchunk.rect_maxX; x++ )
 				{
-					UpdateCell( new Vector2Int( x, y ) + nchunk.Position, ref shouldsleep );
+					UpdateCell( new Vector2Int( x, y ) + nchunk.Position, out shouldsleep );
 					if ( !shouldsleep )
 					{
 						sleep = false;
@@ -36,8 +37,9 @@ public class Sandworker
 	}
 
 
-	public virtual void UpdateCell( Vector2Int Position, ref bool sleep )
+	public virtual void UpdateCell( Vector2Int Position, out bool sleep )
 	{
+		sleep = true;
 	}
 
 	protected Cell GetCell( Vector2Int pos )
@@ -58,18 +60,32 @@ public class Sandworker
 			world.SetCellVelocity( pos, vel );
 	}
 
-	protected void SetCell( Vector2Int pos, Cell cell, bool wake = false )
+	protected void SetCell( Vector2Int pos, ref Cell cell, bool wake = false )
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return;
 		if ( chunk.InBounds( pos ) )
-			chunk.SetCell( pos, cell, wake );
+			chunk.SetCell( pos, ref cell, wake );
 		else
-			world.SetCell( pos, cell, wake );
+			world.SetCell( pos, ref cell, wake );
 	}
+
 
 	protected void MoveCell( Vector2Int From, Vector2Int To, bool Swap = false )
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return;
+
+		int pingx = 0, pingy = 0;
+
+		if ( From.x == chunk.Position.x ) pingx = -1;
+		if ( From.x == chunk.Position.x + chunk.Size.x - 1 ) pingx = 1;
+		if ( From.y == chunk.Position.y ) pingy = -1;
+		if ( From.y == chunk.Position.y + chunk.Size.y - 1 ) pingy = 1;
+
+		if ( pingx != 0 ) world.KeepAlive( new Vector2Int( From.x + pingx, From.y ) );
+		if ( pingy != 0 ) world.KeepAlive( new Vector2Int( From.x, From.y + pingy ) );
+		if ( pingx != 0 && pingy != 0 ) world.KeepAlive( new Vector2Int( From.x + pingx, From.y + pingy ) );
+
+
 		if ( chunk.InBounds( From ) )
 			chunk.MoveCell( chunk, From, To, Swap );
 		else
@@ -80,11 +96,6 @@ public class Sandworker
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return false;
 		return chunk.InBounds( pos ) || world.InBounds( pos );
-	}
-
-	protected bool IsEmpty( Vector2 pos )
-	{
-		return IsEmpty( new Vector2Int( pos.x.FloorToInt(), pos.y.FloorToInt() ) );
 	}
 
 	protected bool IsEmpty( Vector2Int pos )

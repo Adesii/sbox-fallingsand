@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Sand.UI;
+using Sand.util;
 using Sandbox.Debug;
 
 namespace Sand.Systems.FallingSand;
@@ -20,8 +22,6 @@ public class SandWorld
 	SandWorld()
 	{
 		Event.Register( this );
-
-		Scale = 0.5f;
 		ChunkWidth = 64;
 		ChunkHeight = 64;
 	}
@@ -33,7 +33,22 @@ public class SandWorld
 	public static int ChunkWidth;
 	public static int ChunkHeight;
 
-	public static float Scale;
+	public static Vector2Int WorldPosition = new( 0, 0 );
+
+	private static int Zoom = 10;
+	public static int ZoomLevel
+	{
+		get => Zoom;
+		set
+		{
+			//Zoom the world to the middle of the screen
+			var oldZoom = Zoom;
+			Zoom = value.Clamp( 1, 100 );
+			var delta = Zoom - oldZoom;
+			var deltaWorld = delta * (Hud.CorrectMousePosition / oldZoom);
+			WorldPosition += new Vector2Int( deltaWorld );
+		}
+	}
 
 	public ConcurrentDictionary<Vector2Int, SandChunk> chunks = new();
 
@@ -44,11 +59,24 @@ public class SandWorld
 		return GetChunk( pos )?.GetCell( pos ) ?? new Cell();
 	}
 
-	public void SetCell( Vector2Int pos, Cell cell, bool wake = false )
+	public void SetCell( Vector2Int pos, ref Cell cell, bool wake = false )
 	{
-		GetChunk( pos ).SetCell( pos, cell, wake );
+		var cc = GetChunk( pos );
+		cc?.SetCell( pos, ref cell, wake );
+		if ( wake && cc != null )
+			cc.ShouldWakeup = true;
 	}
 
+
+	public void KeepAlive( Vector2Int pos )
+	{
+		var chunk = GetChunk( pos );
+		chunk?.KeepAlive( pos );
+		if ( chunk != null )
+		{
+			chunk.ShouldWakeup = true;
+		}
+	}
 
 	public void MoveCell( Vector2Int From, Vector2Int To, bool Swap = false )
 	{
@@ -56,8 +84,7 @@ public class SandWorld
 		if ( src != null )
 		{
 			SandChunk dst = GetChunk( To );
-			if ( dst != null )
-				dst.MoveCell( src, From, To, Swap );
+			dst?.MoveCell( src, From, To, Swap );
 
 			//Changes.Add( new( src, GetIndex( From ), GetIndex( To ), Swap ) );
 		}
@@ -66,7 +93,7 @@ public class SandWorld
 	public bool IsEmpty( Vector2Int pos )
 	{
 		if ( !InBounds( pos ) ) return false;
-		return GetChunk( pos ).IsEmpty( pos );
+		return GetChunk( pos )?.IsEmpty( pos ) ?? false;
 	}
 
 	public bool InBounds( Vector2Int pos )
@@ -82,39 +109,44 @@ public class SandWorld
 	public SandChunk GetChunk( Vector2Int pos )
 	{
 		var local = GetLocalLocationPrecise( pos );
-		return GetChunk( local.x, local.y );
+		return GetChunkFinal( local );
 	}
 
 	Vector2Int GetLocalLocationPrecise( Vector2Int pos )
 	{
 		return new( ((float)pos.x / ChunkWidth).FloorToInt(), ((float)pos.y / ChunkHeight).FloorToInt() );
+
 	}
 
-	public SandChunk GetChunk( int x, int y )
+	public SandChunk GetChunkFinal( Vector2Int pos )
 	{
-		if ( chunks.TryGetValue( new( x, y ), out var chunk ) )
+		if ( chunks.TryGetValue( pos, out var chunk ) )
 		{
 			return chunk;
 		}
-		if ( x <= -10 || x >= 10 || y <= -15 || y >= 10 )
+		if ( pos.y <= -15 || pos.y >= 10 )
 		{
 			return null;
 		}
-		SandChunk newchunk = new( new( ChunkWidth, ChunkHeight ), new( x * ChunkWidth, y * ChunkHeight ) );
+		SandChunk newchunk = new( new( ChunkWidth, ChunkHeight ), new Vector2Int( ChunkWidth, ChunkHeight ) * pos );
 
-		return chunks.TryAdd( new( x, y ), newchunk ) ? newchunk : null;
+		return chunks.TryAdd( pos, newchunk ) ? newchunk : null;
 	}
 
 	void RemoveEmptyChunks()
 	{
-		for ( int i = 0; i < chunks.Count; i++ )
+		List<Vector2Int> ToRemoveChunks = new();
+		foreach ( var chunk in chunks )
 		{
-			SandChunk chunk = chunks.ElementAt( i ).Value;
-			if ( chunk.filledcells == 0 )
+			if ( chunk.Value.cells.IsEmpty )
 			{
-				chunks.Remove( chunk.Position, out _ );
-				i--;
+				ToRemoveChunks.Add( chunk.Key );
 			}
+		}
+
+		foreach ( var chunk in ToRemoveChunks )
+		{
+			chunks.TryRemove( chunk, out var _ );
 		}
 	}
 
@@ -125,41 +157,77 @@ public class SandWorld
 	TimeSince LastUpdate = 0;
 
 	[ConCmd.Client]
-	public static void SetCellClient( int x, int y, int type )
+	public static void SetCellClient( int x, int y, Type type )
 	{
 		if ( !Instance.InBounds( new Vector2Int( x, y ) ) )
 		{
 			Log.Warning( $"Invalid cell {x} {y}  chunklocal = " );
 			return;
 		}
-		Cell cell = Instance.GetCell( new Vector2Int( x, y ) );
-		cell.type = type;
-		//brown sand
-		if ( type == 1 )
+		Cell cell = null;
+		if ( type == typeof( SandElement ) )
 		{
-			cell.Density = 9;
-			cell.color = new Color( 0.5f, 0.4f, 0.3f );
+			if ( Instance.GetCell( new Vector2Int( x, y ) ) is SandElement )
+			{
+				return;
+			}
+			cell = new SandElement();
 		}
-		//blue water
-		if ( type == 2 )
+		if ( type == typeof( WaterElement ) )
 		{
-			cell.Density = 10;
-			cell.color = new Color( 0.3f, 0.4f, 0.5f );
+			if ( Instance.GetCell( new Vector2Int( x, y ) ) is WaterElement )
+			{
+				return;
+			}
+			cell = new WaterElement();
 		}
 
-		Instance.SetCell( new Vector2Int( x, y ), cell, true );
+
+
+
+		Instance.SetCell( new Vector2Int( x, y ), ref cell, true );
 		//Log.Info( $"Set cell {x} {y} to {type}" );
 	}
-	[ConCmd.Client]
-	public static void SetCellBrush( int x, int y, int size, int type )
+
+	public static void BrushBetween( Vector2Int old, Vector2Int final, int size, Type type )
 	{
-		for ( int i = -size; i < size; i++ )
+		Vector2Int correctedold = old;
+		correctedold.y = ChunkHeight - old.y;
+		correctedold.y += ChunkHeight;
+
+		Vector2Int correctedfinal = final;
+		correctedfinal.y = ChunkHeight - final.y;
+		correctedfinal.y += ChunkHeight;
+
+		correctedold.x -= WorldPosition.x;
+		correctedfinal.x -= WorldPosition.x;
+		correctedold.y += WorldPosition.y;
+		correctedfinal.y += WorldPosition.y;
+
+
+
+		//correctedfinal *= ZoomLevel;
+		//correctedold *= ZoomLevel;
+
+		SandUtils.PointToPointFunction( correctedold, correctedfinal, ( pos ) =>
 		{
-			for ( int j = -size; j < size; j++ )
-			{
-				SetCellClient( x + i, y + j, type );
-			}
-		}
+			if ( Instance.InBounds( pos )
+			&& Instance.InBounds( pos + new Vector2Int( size, size ) )
+			&& Instance.InBounds( pos - new Vector2Int( size, size ) )
+			&& Instance.InBounds( pos + new Vector2Int( size, -size ) )
+			&& Instance.InBounds( pos - new Vector2Int( size, -size ) )
+			&& Instance.InBounds( pos + new Vector2Int( -size, size ) )
+			&& Instance.InBounds( pos - new Vector2Int( -size, size ) )
+			)
+
+				for ( int i = -size; i < size; i++ )
+				{
+					for ( int j = -size; j < size; j++ )
+					{
+						SetCellClient( pos.x + i, pos.y + j, type );
+					}
+				}
+		} );
 	}
 
 	[ConCmd.Client]
@@ -171,7 +239,7 @@ public class SandWorld
 	[GameEvent.Client.Frame]
 	public void Update()
 	{
-		//if ( LastUpdate < 0.05f ) return;
+		//if ( LastUpdate < 0.1f ) return;
 		//SetCellClient( 10, 100, 2 );
 		//SetCellBrush( ChunkWidth - 1, ChunkHeight - 1, 10, 1 );
 		//SetCellBrush( -100, ChunkHeight - 1, 10, 1 );
@@ -197,31 +265,25 @@ public class SandWorld
 		List<Task> tasks = new();
 		//List<Vector2Int> markedchunks = new(); //TODO: figure out why it crashes all the fucking time
 		//Update Cells
+		int totalamountofcells = 0;
 		foreach ( var chunk in chunks )
 		{
-			if ( chunk.Value.filledcells > 0 && (!chunk.Value.sleeping && chunk.Value.SleepTime < 1f) || chunk.Value.ShouldWakeup )
+			if ( !chunk.Value.cells.IsEmpty && (!chunk.Value.IsCurrentlySleeping || chunk.Value.ShouldWakeup) )
 				tasks.Add( GameTask.RunInThreadAsync( () =>
 				{
 					chunk.Value.ShouldWakeup = false;
 					new SimpleSandWorker( this, chunk.Value ).UpdateChunk();
 
 				} ) );
-			/* else
-			{
-				markedchunks.Add( chunk.Key );
-			} */
+
+			totalamountofcells += chunk.Value.cells.Count;
 		}
-
-		DebugOverlay.ScreenText( $"Active Threads: {tasks.Count}", 0 );
-
-		/* for ( int i = 0; i < markedchunks.Count; i++ )
-		{
-			chunks.Remove( markedchunks[i], out _ );
-			i--;
-		} */
-
+		DebugOverlay.ScreenText( $"Active Threads: {tasks.Count}  \n :: {totalamountofcells}", 0, 0.1f );
 		await GameTask.WhenAll( tasks.ToArray() );
 		tasks.Clear();
+
+
+
 		foreach ( var chunk in chunks.Values )
 		{
 			tasks.Add( GameTask.RunInThreadAsync( () =>
@@ -231,7 +293,15 @@ public class SandWorld
 		}
 		await GameTask.WhenAll( tasks.ToArray() );
 		tasks.Clear();
+		foreach ( var chunk in chunks.Values )
+		{
+			chunk.UpdateRect();
+		}
+		RemoveEmptyChunks();
+
+
 		updating = false;
+		LastUpdate = 0;
 	}
 
 	internal void SetVelocityCell( Vector2Int pos, Vector2Int vel )
