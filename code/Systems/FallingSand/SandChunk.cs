@@ -152,7 +152,7 @@ public class SandChunk
 
 	private bool _sleep;
 
-	public bool IsCurrentlySleeping => (_sleep);
+	public bool IsCurrentlySleeping => _sleep;
 	public bool sleeping
 	{
 		set

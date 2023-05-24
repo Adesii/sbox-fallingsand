@@ -24,7 +24,7 @@ public class SandDisplay : Panel
 
 			if ( !chunk.Value.IsCurrentlySleeping )
 			{
-				//DebugOverlay.Texture( Texture.Transparent, rect, 0.2f );
+				DebugOverlay.Texture( Texture.Transparent, rect, 0.2f );
 				var keepaliverect = new Rect( chunk.Value.rect_minX, chunk.Value.rect_minY, chunk.Value.rect_maxX, chunk.Value.rect_maxY );
 				var top = keepaliverect.Top;
 				var bottom = keepaliverect.Bottom;

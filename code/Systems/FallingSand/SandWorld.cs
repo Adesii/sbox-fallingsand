@@ -63,8 +63,11 @@ public class SandWorld
 	{
 		var cc = GetChunk( pos );
 		cc?.SetCell( pos, ref cell, wake );
-		if ( wake && cc != null )
+		if ( wake )
+		{
 			cc.ShouldWakeup = true;
+			cc.KeepAlive( pos );
+		}
 	}
 
 
@@ -182,9 +185,6 @@ public class SandWorld
 			cell = new WaterElement();
 		}
 
-
-
-
 		Instance.SetCell( new Vector2Int( x, y ), ref cell, true );
 		//Log.Info( $"Set cell {x} {y} to {type}" );
 	}
@@ -281,9 +281,6 @@ public class SandWorld
 		DebugOverlay.ScreenText( $"Active Threads: {tasks.Count}  \n :: {totalamountofcells}", 0, 0.1f );
 		await GameTask.WhenAll( tasks.ToArray() );
 		tasks.Clear();
-
-
-
 		foreach ( var chunk in chunks.Values )
 		{
 			tasks.Add( GameTask.RunInThreadAsync( () =>
@@ -297,6 +294,7 @@ public class SandWorld
 		{
 			chunk.UpdateRect();
 		}
+
 		RemoveEmptyChunks();
 
 
