@@ -6,6 +6,9 @@ public class SandDisplay : Panel
 {
 	public override bool HasContent => true;
 
+	[ConVar.Client]
+	public static int ChunkDebugDraw { get; set; } = 0;
+
 	TimeSince LastDraw = 0;
 	public override void DrawContent( ref RenderState state )
 	{
@@ -22,23 +25,27 @@ public class SandDisplay : Panel
 			rect.Position += SandWorld.WorldPosition;
 			rect *= ScaleToScreen / ((float)SandWorld.ZoomLevel / 10f);
 
-			if ( !chunk.Value.IsCurrentlySleeping )
+			if ( !chunk.Value.IsCurrentlySleeping && ChunkDebugDraw > 0 )
 			{
-				DebugOverlay.Texture( Texture.Transparent, rect, 0.2f );
-				var keepaliverect = new Rect( chunk.Value.rect_minX, chunk.Value.rect_minY, chunk.Value.rect_maxX, chunk.Value.rect_maxY );
-				var top = keepaliverect.Top;
-				var bottom = keepaliverect.Bottom;
-				keepaliverect.Top = -bottom;
-				keepaliverect.Bottom = -top;
+				if ( ChunkDebugDraw >= 1 && ChunkDebugDraw <= 2 )
+					DebugOverlay.Texture( Texture.Transparent, rect, 0.2f );
 
-				keepaliverect += new Vector2( 0, chunk.Value.Size.y );
+				if ( ChunkDebugDraw >= 2 && ChunkDebugDraw <= 3 )
+				{
+					var keepaliverect = new Rect( chunk.Value.rect_minX, chunk.Value.rect_minY, chunk.Value.rect_maxX, chunk.Value.rect_maxY );
+					var top = keepaliverect.Top;
+					var bottom = keepaliverect.Bottom;
+					keepaliverect.Top = -bottom;
+					keepaliverect.Bottom = -top;
+
+					keepaliverect += new Vector2( 0, chunk.Value.Size.y );
 
 
-				keepaliverect *= ScaleToScreen / ((float)SandWorld.ZoomLevel / 10f);
-				keepaliverect.Position += rect.Position;
+					keepaliverect *= ScaleToScreen / ((float)SandWorld.ZoomLevel / 10f);
+					keepaliverect.Position += rect.Position;
+					DebugOverlay.Texture( Texture.Transparent, keepaliverect, 0.2f );
+				}
 
-
-				DebugOverlay.Texture( Texture.Transparent, keepaliverect, 0.2f );
 			}
 
 			Graphics.DrawQuad( rect, Material.FromShader( "shaders/sanddrawer.shader" ), Color.White, attribs );
