@@ -63,10 +63,12 @@ public class Sandworker
 	protected void SetCell( Vector2Int pos, ref Cell cell, bool wake = false )
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return;
+
 		if ( chunk.InBounds( pos ) )
 			chunk.SetCell( pos, ref cell, wake );
 		else
 			world.SetCell( pos, ref cell, wake );
+
 	}
 
 
@@ -83,6 +85,7 @@ public class Sandworker
 
 		if ( pingx != 0 ) world.KeepAlive( new Vector2Int( From.x + pingx, From.y ) );
 		if ( pingy != 0 ) world.KeepAlive( new Vector2Int( From.x, From.y + pingy ) );
+
 		if ( pingx != 0 && pingy != 0 ) world.KeepAlive( new Vector2Int( From.x + pingx, From.y + pingy ) );
 
 

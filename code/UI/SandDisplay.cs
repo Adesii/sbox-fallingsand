@@ -16,12 +16,14 @@ public class SandDisplay : Panel
 		//attribsss.Set( "Texture", Texture.White );
 		//Graphics.DrawQuad( new Rect( MousePosition, 100 ), Material.UI.Basic, Color.Red, attribsss );
 		int line = 5;
+		if ( SandWorld.Instance.chunks == null ) return;
 		foreach ( var chunk in SandWorld.Instance.chunks )
 		{
 			if ( chunk.Value.Texture == null || !chunk.Value.Texture.IsLoaded ) continue;
 			var attribs = new RenderAttributes();
 			attribs.Set( "Texture", chunk.Value.Texture );
-			Rect rect = new( new Vector2( chunk.Key.x * chunk.Value.Size.x, chunk.Value.Size.y - (chunk.Key.y * chunk.Value.Size.y) ), new Vector2( SandWorld.ChunkWidth, SandWorld.ChunkHeight ) ); ;
+			Rect rect = new( new Vector2( chunk.Key.x * chunk.Value.Size.x, (1 - chunk.Key.y * chunk.Value.Size.y) ), new Vector2( SandWorld.ChunkWidth, SandWorld.ChunkHeight ) ); ;
+			rect += new Vector2( 0, SandWorld.ChunkHeight );
 			rect.Position += SandWorld.WorldPosition;
 			rect *= ScaleToScreen / ((float)SandWorld.ZoomLevel / 10f);
 
@@ -32,11 +34,7 @@ public class SandDisplay : Panel
 
 				if ( ChunkDebugDraw >= 2 && ChunkDebugDraw <= 3 )
 				{
-					var keepaliverect = new Rect( chunk.Value.rect_minX, chunk.Value.rect_minY, chunk.Value.rect_maxX, chunk.Value.rect_maxY );
-					var top = keepaliverect.Top;
-					var bottom = keepaliverect.Bottom;
-					keepaliverect.Top = -bottom;
-					keepaliverect.Bottom = -top;
+					var keepaliverect = new Rect( chunk.Value.rect_minX, 1 - chunk.Value.rect_minY, chunk.Value.rect_maxX - chunk.Value.rect_minX, (1 - chunk.Value.rect_maxY) - (1 - chunk.Value.rect_minY) );
 
 					keepaliverect += new Vector2( 0, chunk.Value.Size.y );
 

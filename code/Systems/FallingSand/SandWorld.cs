@@ -26,6 +26,34 @@ public class SandWorld
 		ChunkHeight = 64;
 	}
 
+	public struct WorldLimit
+	{
+		public int LeftLimit;
+		public int RightLimit;
+		public int UpLimit;
+		public int DownLimit;
+
+		public WorldLimit( int left, int right, int up, int down )
+		{
+			LeftLimit = left;
+			RightLimit = right;
+			UpLimit = up;
+			DownLimit = down;
+		}
+
+		bool CheckWithLimitless( int limit, int pos, bool positive )
+		{
+			return limit == 0 || ((pos < limit && positive) || (pos > limit && !positive));
+		}
+
+		public bool InBounds( Vector2Int pos )
+		{
+			return CheckWithLimitless( -LeftLimit, pos.x, false ) && CheckWithLimitless( RightLimit, pos.x, true ) && CheckWithLimitless( UpLimit, pos.y, true ) && CheckWithLimitless( -DownLimit, pos.y, false );
+		}
+	}
+
+	public static WorldLimit Limit = new( 2, 2, 2, 2 );
+
 	public Texture DrawTexture;
 	public Texture CellTexture;
 
@@ -49,10 +77,7 @@ public class SandWorld
 			WorldPosition += new Vector2Int( deltaWorld );
 		}
 	}
-
 	public ConcurrentDictionary<Vector2Int, SandChunk> chunks = new();
-
-	//List<CellMoveInfo> Changes = new();
 
 	public Cell GetCell( Vector2Int pos )
 	{
@@ -74,11 +99,13 @@ public class SandWorld
 	public void KeepAlive( Vector2Int pos )
 	{
 		var chunk = GetChunk( pos );
-		chunk?.KeepAlive( pos );
-		if ( chunk != null )
+		if ( chunk == null ) return;
+		if ( chunk.sleeping )
 		{
 			chunk.ShouldWakeup = true;
 		}
+		chunk.KeepAlive( pos );
+
 	}
 
 	public void MoveCell( Vector2Int From, Vector2Int To, bool Swap = false )
@@ -123,15 +150,18 @@ public class SandWorld
 
 	public SandChunk GetChunkFinal( Vector2Int pos )
 	{
+		chunks ??= new();
 		if ( chunks.TryGetValue( pos, out var chunk ) )
 		{
 			return chunk;
 		}
-		if ( pos.y <= -15 || pos.y >= 10 )
+		if ( !Limit.InBounds( pos ) )
 		{
 			return null;
 		}
+
 		SandChunk newchunk = new( new( ChunkWidth, ChunkHeight ), new Vector2Int( ChunkWidth, ChunkHeight ) * pos );
+		newchunk.ShouldWakeup = true;
 
 		return chunks.TryAdd( pos, newchunk ) ? newchunk : null;
 	}
@@ -204,6 +234,9 @@ public class SandWorld
 		correctedold.y += WorldPosition.y;
 		correctedfinal.y += WorldPosition.y;
 
+		Instance.KeepAlive( correctedold );
+		Instance.KeepAlive( correctedfinal );
+
 
 
 		//correctedfinal *= ZoomLevel;
@@ -211,22 +244,16 @@ public class SandWorld
 
 		SandUtils.PointToPointFunction( correctedold, correctedfinal, ( pos ) =>
 		{
-			if ( Instance.InBounds( pos )
-			&& Instance.InBounds( pos + new Vector2Int( size, size ) )
-			&& Instance.InBounds( pos - new Vector2Int( size, size ) )
-			&& Instance.InBounds( pos + new Vector2Int( size, -size ) )
-			&& Instance.InBounds( pos - new Vector2Int( size, -size ) )
-			&& Instance.InBounds( pos + new Vector2Int( -size, size ) )
-			&& Instance.InBounds( pos - new Vector2Int( -size, size ) )
-			)
 
-				for ( int i = -size; i < size; i++ )
+
+			for ( int i = -size; i < size; i++ )
+			{
+				for ( int j = -size; j < size; j++ )
 				{
-					for ( int j = -size; j < size; j++ )
-					{
+					if ( Instance.InBounds( pos + new Vector2Int( i, j ) ) )
 						SetCellClient( pos.x + i, pos.y + j, type );
-					}
 				}
+			}
 		} );
 	}
 
@@ -262,8 +289,10 @@ public class SandWorld
 		updating = true;
 
 
+
+
 		List<Task> tasks = new();
-		//List<Vector2Int> markedchunks = new(); //TODO: figure out why it crashes all the fucking time
+
 		//Update Cells
 		int totalamountofcells = 0;
 		foreach ( var chunk in chunks )
@@ -281,6 +310,8 @@ public class SandWorld
 		DebugOverlay.ScreenText( $"Active Threads: {tasks.Count}  \n :: {totalamountofcells}", 0, 0.1f );
 		await GameTask.WhenAll( tasks.ToArray() );
 		tasks.Clear();
+
+
 		foreach ( var chunk in chunks.Values )
 		{
 			tasks.Add( GameTask.RunInThreadAsync( () =>
@@ -290,10 +321,16 @@ public class SandWorld
 		}
 		await GameTask.WhenAll( tasks.ToArray() );
 		tasks.Clear();
+
+
 		foreach ( var chunk in chunks.Values )
 		{
 			chunk.UpdateRect();
 		}
+
+
+
+
 
 		RemoveEmptyChunks();
 

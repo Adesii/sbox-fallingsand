@@ -20,7 +20,7 @@ public class SimpleSandWorker : Sandworker
 		}
 		Cell c = chunk.GetCell( Position );
 
-		if ( c == null )
+		if ( c == null || c is EmptyCell )
 		{
 			sleep = true;
 			return;
@@ -41,7 +41,6 @@ public class SimpleSandWorker : Sandworker
 				return;
 			if ( MoveSides( Position, ref c, out sleep ) )
 				return;
-
 		}
 
 	}
@@ -59,16 +58,17 @@ public class SimpleSandWorker : Sandworker
 		if ( boyouend )
 		{
 			QuickSwap( pos, pos + Vector2Int.Down, ref c, ref other );
-			sleep = true;
+			sleep = false;
 			return true;
 		}
 		if ( odl.GetType() != other?.GetType() )
 		{
 			var oldvel = odl.Velocity;
-			oldvel += Vector2Int.Down * 1;
+			oldvel += Vector2Int.Down;
 			sleep = FinalizeMove( pos, oldvel );
+
 			//MoveCell( pos, pos + Vector2Int.Down * 2, false );
-			return true;
+			return !sleep;
 		}
 		sleep = false;
 		//cell.Velocity = Vector2.Zero;
@@ -108,9 +108,12 @@ public class SimpleSandWorker : Sandworker
 		}
 		//using var _e = Profile.Scope( "MoveDownSides::Finalize" );
 		if ( downleft || downright )
+		{
 			sleep = FinalizeMove( pos, oldvel );
-		else
-			sleep = true;
+			return true;
+		}
+
+		sleep = true;
 
 		return downleft || downright;
 	}
@@ -130,23 +133,23 @@ public class SimpleSandWorker : Sandworker
 
 		if ( downleft )
 		{
-			oldvel = Vector2Int.Left * Game.Random.Float( 1, 5 );
+			oldvel = Vector2Int.Left * 5;
 			//MoveCell( pos, pos + Vector2Int.Left, false );
 		}
 		else if ( downright )
 		{
-			oldvel = Vector2Int.Right * Game.Random.Float( 1, 5 );
+			oldvel = Vector2Int.Right * 5;
 			//MoveCell( pos, pos + Vector2Int.Right, false );
 		}
 		//using var _e = Profile.Scope( "MoveDownSides::Finalize" );
 		if ( downleft || downright )
 		{
-			FinalizeMove( pos, oldvel );
-			sleep = false;
-		}
-		else
-			sleep = true;
 
+			sleep = FinalizeMove( pos, oldvel );
+			return true;
+		}
+
+		sleep = true;
 
 		return downleft || downright;
 	}
@@ -165,10 +168,10 @@ public class SimpleSandWorker : Sandworker
 		var (pos, vel, moved) = CheckPosVelocity( NewPos, NewVel );
 		if ( IsEmpty( pos ) )
 		{
-			MoveCell( NewPos, pos );
-			SetCellVelocity( pos, vel );
 		}
-		//SetCellVelocity( NewPos, vel );
+		MoveCell( NewPos, pos );
+		SetCellVelocity( NewPos, vel );
+		//SetCellVelocity( pos, vel );
 		return !moved;
 	}
 
@@ -181,8 +184,7 @@ public class SimpleSandWorker : Sandworker
 
 		SandUtils.PointToPointFunction( newPos, newPos + newVel, ( pos ) =>
 		{
-			bool empty = IsEmpty( pos );
-			if ( (empty || pos == newPos) )
+			if ( IsEmpty( pos ) )
 			{
 				currentPos = pos;
 			}
@@ -227,14 +229,12 @@ public class SimpleSandWorker : Sandworker
 
 		int iprev = 0;
 
-		chunk.Changes.Add( new( new( -1, -1 ), -1, -1 ) );
-
 		//Log.Info( $"Changes: {chunk.Changes.Count}" );
 
 
-		for ( int i = 0; i < chunk.Changes.Count - 1; i++ )
+		for ( int i = 0; i < chunk.Changes.Count; i++ )
 		{
-			if ( chunk.Changes[i + 1].To != chunk.Changes[i].To )
+			if ( i == chunk.Changes.Count - 1 || chunk.Changes[i + 1].To != chunk.Changes[i].To )
 			{
 				int rand = iprev + Game.Random.Int( i - iprev );
 

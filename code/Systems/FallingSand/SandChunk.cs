@@ -18,19 +18,18 @@ public class SandChunk
 	{
 		return pos - Position;
 	}
-
-	void KeepAlivelocal( Vector2Int index )
+	void KeepAlivelocal( int index )
 	{
-		int x = index.x;
-		int y = index.y;
+		int x = index % Size.x;
+		int y = index / Size.x;
 
 		lock ( this )
 		{
-			working_minX = Math.Min( working_minX, x - 2 ).Clamp( 0, Size.x );
-			working_minY = Math.Min( working_minY, y - 2 ).Clamp( 0, Size.y );
+			working_minX = Math.Min( working_minX, x - 10 ).Clamp( 0, Size.x );
+			working_minY = Math.Min( working_minY, y - 10 ).Clamp( 0, Size.y );
 
-			working_maxX = Math.Max( working_maxX, x + 2 ).Clamp( 0, Size.x );
-			working_maxY = Math.Max( working_maxY, y + 2 ).Clamp( 0, Size.y );
+			working_maxX = Math.Max( working_maxX, x + 10 ).Clamp( 0, Size.x );
+			working_maxY = Math.Max( working_maxY, y + 10 ).Clamp( 0, Size.y );
 			//Log.Info( $"KeepAlive: {x},{y} {working_minX} {working_maxX} {working_minY} {working_maxY} Size: {Size}" );
 		}
 		//if ( working_minX != rect_minX || working_maxX != rect_maxX || working_minY != rect_minY || working_maxY != rect_maxY )
@@ -112,15 +111,15 @@ public class SandChunk
 			return;
 		int index = GetIndex( pos );
 		SetCell( index, ref cell, wake );
-		//if ( wake )
-		KeepAlive( pos );
+		if ( wake )
+			KeepAlive( pos );
 	}
 
 	void SetCell( int index, ref Cell cell, bool wake = false )
 	{
 		if ( wake )
 			ShouldWakeup = wake;
-		if ( cell is EmptyCell )
+		if ( cell is EmptyCell || cell == null )
 		{
 			cells.TryRemove( index, out var _ );
 		}
@@ -129,6 +128,7 @@ public class SandChunk
 			cells[index] = cell;
 		}
 		DrawPixel( index, cell == null ? Color.Transparent : cell.color );
+
 	}
 
 	public void MoveCell( SandChunk src, Vector2Int From, Vector2Int To, bool Swap = false )
