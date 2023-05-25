@@ -6,14 +6,14 @@ public partial class Cell
 {
 	public Vector2Int Position;
 	public static Cell Empty = new EmptyCell();
-	public Color color;
+	public Color32 color;
 	public Vector2Int Velocity;
 	public int Density;
 
 
 	public virtual void Step( Sandworker worker, out bool sleep )
 	{
-		sleep = true;
+		sleep = false;
 	}
 
 }

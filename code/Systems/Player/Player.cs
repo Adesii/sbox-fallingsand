@@ -5,7 +5,22 @@ namespace Sand;
 
 public partial class Player : AnimatedEntity
 {
+	public static Type LeftClick = typeof( SandElement );
+	public static Type RightClick = typeof( WaterElement );
 
+
+	[ConCmd.Client]
+	public static void SetLeftClick( string name )
+	{
+		var type = TypeLibrary.GetType( name );
+		if ( type == null )
+		{
+			Log.Error( $"Could not find type {name}" );
+			return;
+		}
+		Log.Info( $"Set left click to {type.TargetType}" );
+		LeftClick = type.TargetType;
+	}
 	/// <summary>
 	/// When the player is first created. This isn't called when a player respawns.
 	/// </summary>
@@ -54,7 +69,7 @@ public partial class Player : AnimatedEntity
 		if ( Input.Down( "LeftClick" ) )
 		{
 			var newpos = new Vector2Int( Hud.CorrectMousePosition );
-			SandWorld.BrushBetween( OldPos, newpos, 10, typeof( SandElement ) );
+			SandWorld.BrushBetween( OldPos, newpos, 10, LeftClick );
 			OldPos = newpos;
 		}
 		else if ( dragleft )
@@ -71,7 +86,7 @@ public partial class Player : AnimatedEntity
 		if ( Input.Down( "RightClick" ) )
 		{
 			var newpos = new Vector2Int( Hud.CorrectMousePosition );
-			SandWorld.BrushBetween( OldPos, newpos, 10, typeof( WaterElement ) );
+			SandWorld.BrushBetween( OldPos, newpos, 10, RightClick );
 			OldPos = newpos;
 		}
 		else if ( dragright )

@@ -4,35 +4,32 @@ namespace Sand.Systems.FallingSand;
 
 public partial class Cell
 {
-	protected bool MoveDown( Sandworker worker, out bool sleep )
+	protected bool MoveDown( Sandworker worker )
 	{
 		//using var _b = Profile.Scope( "MoveDown" );
 		var other = worker.GetCell( Position + Vector2Int.Down );
 
 		bool boyouend = (other?.Density ?? 0) > Density;
-		if ( boyouend )
+		if ( boyouend && !SandUtils.IsAir( other ) )
 		{
 			QuickSwap( worker, Position, Position + Vector2Int.Down, this, other );
-			sleep = false;
 			return true;
 		}
 		if ( GetType() != other?.GetType() )
 		{
 			var oldvel = Velocity;
 			oldvel += Vector2Int.Down;
-			sleep = FinalizeMove( worker, Position, oldvel );
-			return !sleep;
+			return FinalizeMove( worker, Position, oldvel );
 		}
-		sleep = false;
-		return false;
+		return true;
 	}
 
-
-	protected bool MoveDownSides( Sandworker worker, out bool sleep )
+	protected bool MoveDirection( Sandworker worker, Vector2Int dir1, Vector2Int dir2, int Vel1 = 1, int Vel2 = 1 )
 	{
-
-		bool left = worker.IsEmpty( Position + Vector2Int.Down + Vector2Int.Left );
-		bool right = worker.IsEmpty( Position + Vector2Int.Down + Vector2Int.Right );
+		Cell leftcell = worker.GetCell( Position + dir1 );
+		Cell rightcell = worker.GetCell( Position + dir2 );
+		bool left = SandUtils.IsAir( leftcell ) || (leftcell?.Density ?? 0) > Density;
+		bool right = SandUtils.IsAir( rightcell ) || (rightcell?.Density ?? 0) > Density;
 		if ( left && right )
 		{
 			left = Game.Random.Float() > 0.5f;
@@ -40,28 +37,35 @@ public partial class Cell
 		}
 
 
-		var oldvel = new Vector2Int();
+		var oldvel = Velocity;
 
 		if ( left )
 		{
-			oldvel = Vector2Int.Left + Vector2Int.Down;
+			bool boyouend = (leftcell?.Density ?? 0) > Density;
+			if ( boyouend )
+			{
+				QuickSwap( worker, Position, Position + dir1, this, leftcell );
+			}
+			oldvel += dir1 * Vel1;
 		}
 		else if ( right )
 		{
-			oldvel = Vector2Int.Right + Vector2Int.Down;
+			bool boyouend = (rightcell?.Density ?? 0) > Density;
+			if ( boyouend )
+			{
+				QuickSwap( worker, Position, Position + dir2, this, rightcell );
+			}
+			oldvel += dir2 * Vel2;
 		}
 		if ( left || right )
 		{
-			sleep = FinalizeMove( worker, Position, oldvel );
-			return !sleep;
+			return FinalizeMove( worker, Position, oldvel );
 		}
 
-		sleep = true;
-
-		return left || right;
+		return true;
 	}
 
-	protected bool MoveSides( Sandworker worker, out bool sleep )
+	protected bool MoveSides( Sandworker worker )
 	{
 		//using var _c = Profile.Scope( "MoveDownSides" );
 		bool downleft = worker.IsEmpty( Position + Vector2Int.Left );
@@ -87,12 +91,9 @@ public partial class Cell
 		//using var _e = Profile.Scope( "MoveDownSides::Finalize" );
 		if ( downleft || downright )
 		{
-			sleep = FinalizeMove( worker, Position, oldvel );
-			return !sleep;
+			return FinalizeMove( worker, Position, oldvel );
 		}
 
-		sleep = true;
-
-		return downleft || downright;
+		return true;
 	}
 }

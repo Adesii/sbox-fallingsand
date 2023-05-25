@@ -11,13 +11,14 @@ public class SandChunk
 
 	public void KeepAlive( Vector2Int pos )
 	{
-		KeepAlivelocal( GetIndex( pos ) );
+		KeepAlivelocal( pos );
 	}
 
-	void KeepAlivelocal( int index )
+	void KeepAlivelocal( Vector2Int global )
 	{
-		int x = index % Size.x;
-		int y = index / Size.x;
+		Vector2Int localPosition = global - Position;
+		int x = localPosition.x;
+		int y = localPosition.y;
 
 		lock ( this )
 		{
@@ -26,6 +27,8 @@ public class SandChunk
 
 			working_maxX = Math.Max( working_maxX, x + 2 ).Clamp( 0, Size.x );
 			working_maxY = Math.Max( working_maxY, y + 2 ).Clamp( 0, Size.y );
+			//sleeping = false;
+			ShouldWakeup = true;
 			//Log.Info( $"KeepAlive: {x},{y} {working_minX} {working_maxX} {working_minY} {working_maxY} Size: {Size}" );
 		}
 		//if ( working_minX != rect_minX || working_maxX != rect_maxX || working_minY != rect_minY || working_maxY != rect_maxY )
@@ -46,6 +49,7 @@ public class SandChunk
 
 		working_minY = Size.y;
 		working_maxY = -1;
+		sleeping = true;
 	}
 
 
@@ -79,7 +83,8 @@ public class SandChunk
 	}
 	bool IsEmpty( int index )
 	{
-		return GetCell( index ) is EmptyCell;
+		var c = GetCell( index );
+		return c is EmptyCell || c == null;
 	}
 
 	public Cell GetCell( Vector2Int pos )
@@ -94,7 +99,7 @@ public class SandChunk
 	{
 		if ( cells.TryGetValue( index, out var cell ) )
 		{
-			return cell;
+			return (cell is EmptyCell || cell == null) ? Cell.Empty : cell;
 		}
 		return Cell.Empty;
 	}
@@ -106,14 +111,11 @@ public class SandChunk
 			return;
 		int index = GetIndex( pos );
 		SetCell( index, pos, ref cell, wake );
-		if ( wake )
-			KeepAlive( pos );
+		//KeepAlive( pos );
 	}
 
 	void SetCell( int index, Vector2Int Position, ref Cell cell, bool wake = false )
 	{
-		if ( wake )
-			ShouldWakeup = wake;
 		if ( cell is EmptyCell || cell == null )
 		{
 			cells.TryRemove( index, out var _ );
@@ -124,7 +126,6 @@ public class SandChunk
 			cells[index] = cell;
 		}
 		DrawPixel( index, cell == null ? Color.Transparent : cell.color );
-
 	}
 
 	public void MoveCell( SandChunk src, Vector2Int From, Vector2Int To, bool Swap = false )
@@ -173,6 +174,11 @@ public class SandChunk
 		pixels ??= new Color32[Size.x * Size.y];
 		Texture ??= Texture.Create( Size.x, Size.y ).WithDynamicUsage().Finish();
 
+		/* for ( int i = 0; i < Size.x * Size.y; i++ )
+		{
+			var cell = GetCell( i );
+			pixels[i] = cell.color;
+		} */
 		Texture.Update( pixels, 0, 0, Size.x, Size.y );
 	}
 

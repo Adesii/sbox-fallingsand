@@ -131,8 +131,7 @@ public class SandWorld
 		cc?.SetCell( pos, ref cell, wake );
 		if ( wake )
 		{
-			cc.ShouldWakeup = true;
-			cc.KeepAlive( pos );
+			cc?.KeepAlive( pos );
 		}
 	}
 
@@ -140,13 +139,7 @@ public class SandWorld
 	public void KeepAlive( Vector2Int pos )
 	{
 		var chunk = GetChunk( pos );
-		if ( chunk == null ) return;
-		if ( chunk.sleeping )
-		{
-			chunk.ShouldWakeup = true;
-		}
-		chunk.KeepAlive( pos );
-
+		chunk?.KeepAlive( pos );
 	}
 
 	public void MoveCell( Vector2Int From, Vector2Int To, bool Swap = false )
@@ -163,7 +156,7 @@ public class SandWorld
 
 	public bool IsEmpty( Vector2Int pos )
 	{
-		if ( !InBounds( pos ) ) return false;
+		//if ( !InBounds( pos ) ) return false;
 		return GetChunk( pos )?.IsEmpty( pos ) ?? false;
 	}
 
@@ -239,24 +232,14 @@ public class SandWorld
 			return;
 		}
 		Cell cell = null;
-		if ( type == typeof( SandElement ) )
+
+		if ( Instance.GetCell( new Vector2Int( x, y ) ).GetType() == type )
 		{
-			if ( Instance.GetCell( new Vector2Int( x, y ) ) is SandElement )
-			{
-				//Instance.KeepAlive( new Vector2Int( x, y ) );
-				return;
-			}
-			cell = new SandElement();
+			//Instance.KeepAlive( new Vector2Int( x, y ) );
+			return;
 		}
-		if ( type == typeof( WaterElement ) )
-		{
-			if ( Instance.GetCell( new Vector2Int( x, y ) ) is WaterElement )
-			{
-				//Instance.KeepAlive( new Vector2Int( x, y ) );
-				return;
-			}
-			cell = new WaterElement();
-		}
+		cell = TypeLibrary.Create<Cell>( type );
+
 
 		Instance.SetCell( new Vector2Int( x, y ), ref cell, true );
 		//Log.Info( $"Set cell {x} {y} to {type}" );
@@ -347,6 +330,7 @@ public class SandWorld
 			{
 				if ( chunk.Value.ShouldWakeup )
 					chunk.Value.ShouldWakeup = false;
+				chunk.Value.sleeping = true;
 				tasks.Add( GameTask.RunInThreadAsync( () =>
 							{
 								new SimpleSandWorker( this, chunk.Value ).UpdateChunk();
@@ -375,11 +359,6 @@ public class SandWorld
 		{
 			chunk.UpdateRect();
 		}
-
-
-
-
-
 		RemoveEmptyChunks();
 
 		sw.Stop();

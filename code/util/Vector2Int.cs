@@ -5,7 +5,10 @@ using Sandbox;
 
 public struct Vector2Int : IEquatable<Vector2Int>
 {
-	internal System.Numerics.Vector2 vec;
+	internal int xv;
+	internal int yv;
+
+	internal readonly System.Numerics.Vector2 vec => new( xv, yv );
 
 	//
 	// Summary:
@@ -29,11 +32,11 @@ public struct Vector2Int : IEquatable<Vector2Int>
 	{
 		readonly get
 		{
-			return (int)vec.X;
+			return xv;
 		}
 		set
 		{
-			vec.X = value;
+			xv = value;
 		}
 	}
 
@@ -41,11 +44,11 @@ public struct Vector2Int : IEquatable<Vector2Int>
 	{
 		readonly get
 		{
-			return (int)vec.Y;
+			return yv;
 		}
 		set
 		{
-			vec.Y = value;
+			yv = value;
 		}
 	}
 
@@ -103,7 +106,8 @@ public struct Vector2Int : IEquatable<Vector2Int>
 
 	public Vector2Int( System.Numerics.Vector2 v )
 	{
-		vec = v;
+		xv = v.X.FloorToInt();
+		yv = v.Y.FloorToInt();
 	}
 
 	public static implicit operator Vector2Int( System.Numerics.Vector2 value )
@@ -133,7 +137,7 @@ public struct Vector2Int : IEquatable<Vector2Int>
 
 	public static Vector2Int operator +( Vector2Int c1, Vector2Int c2 )
 	{
-		return c1.vec + c2.vec;
+		return new( c1.x + c2.x, c1.y + c2.y );
 	}
 	public static Vector3 operator +( Vector3 c1, Vector2Int c2 )
 	{
@@ -142,7 +146,7 @@ public struct Vector2Int : IEquatable<Vector2Int>
 
 	public static Vector2Int operator -( Vector2Int c1, Vector2Int c2 )
 	{
-		return c1.vec - c2.vec;
+		return new( c1.x - c2.x, c1.y - c2.y );
 	}
 
 	public static Vector2Int operator -( Vector2Int c1 )
@@ -221,7 +225,7 @@ public struct Vector2Int : IEquatable<Vector2Int>
 		string[] array = str.Split( new char[5] { ' ', ',', ';', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries );
 		if ( array.Length != 2 )
 		{
-			return default( Vector2Int );
+			return default;
 		}
 		return new Vector2Int( array[0].ToInt(), array[1].ToInt() );
 	}
@@ -275,12 +279,12 @@ public struct Vector2Int : IEquatable<Vector2Int>
 
 	public static bool operator ==( Vector2Int left, Vector2Int right )
 	{
-		return left.Equals( right );
+		return (left.x == right.x && left.y == right.y);
 	}
 
 	public static bool operator !=( Vector2Int left, Vector2Int right )
 	{
-		return !(left == right);
+		return !(left.x == right.x && left.y == right.y);
 	}
 
 	public static explicit operator Vector2( Vector2Int v )
@@ -290,9 +294,8 @@ public struct Vector2Int : IEquatable<Vector2Int>
 
 	public override bool Equals( object obj )
 	{
-		if ( obj is Vector2Int )
+		if ( obj is Vector2Int o )
 		{
-			Vector2Int o = (Vector2Int)obj;
 			return Equals( o );
 		}
 		return false;
@@ -300,7 +303,7 @@ public struct Vector2Int : IEquatable<Vector2Int>
 
 	public bool Equals( Vector2Int o )
 	{
-		return vec == o.vec;
+		return x == o.x && y == o.y;
 	}
 
 	public override int GetHashCode()

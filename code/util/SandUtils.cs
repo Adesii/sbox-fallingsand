@@ -1,3 +1,5 @@
+using Sand.Systems.FallingSand;
+
 namespace Sand.util;
 
 public static class SandUtils
@@ -25,7 +27,7 @@ public static class SandUtils
 
 		int longerSideLength = Math.Max( Math.Abs( xDiff ), Math.Abs( yDiff ) );
 		int shorterSideLength = Math.Min( Math.Abs( xDiff ), Math.Abs( yDiff ) );
-		float slope = (shorterSideLength == 0 || longerSideLength == 0) ? 0 : ((float)(shorterSideLength) / (longerSideLength));
+		float slope = (shorterSideLength == 0 || longerSideLength == 0) ? 0 : ((float)shorterSideLength / longerSideLength);
 
 		int shorterSideIncrease;
 		for ( int i = 1; i <= longerSideLength; i++ )
@@ -47,6 +49,11 @@ public static class SandUtils
 			Vector2Int v = new( currentX, currentY );
 			function( v );
 		}
+	}
+
+	internal static bool IsAir( Cell leftcell )
+	{
+		return leftcell == null || leftcell is EmptyCell;
 	}
 }
 

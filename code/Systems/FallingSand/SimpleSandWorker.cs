@@ -18,14 +18,8 @@ public class SimpleSandWorker : Sandworker
 			sleep = true;
 			return;
 		}
-		Cell c = chunk.GetCell( Position );
+		chunk.GetCell( Position ).Step( this, out sleep );
 
-		if ( c == null || c is EmptyCell )
-		{
-			sleep = true;
-			return;
-		}
-		c.Step( this, out sleep );
 	}
 
 
@@ -37,7 +31,7 @@ public class SimpleSandWorker : Sandworker
 		for ( int i = 0; i < chunk.Changes.Count; i++ )
 		{
 			var moveinfo = chunk.Changes[i];
-			if ( !IsEmpty( moveinfo.To ) )
+			if ( !IsEmpty( moveinfo.To ) || moveinfo.Source.IsEmpty( moveinfo.From ) )
 			{
 				chunk.Changes.RemoveAt( i );
 				i--;
@@ -64,29 +58,20 @@ public class SimpleSandWorker : Sandworker
 				Vector2Int src = chunk.Changes[rand].From;
 				SandChunk sourcchunk = chunk.Changes[rand].Source;
 
-				if ( !chunk.Changes[rand].Swap )
+				//if ( (sourcchunk.IsEmpty( src ) || !IsEmpty( dst )) ) continue;
+				//cells[dst] = cells[src];
+				//cells[src] = default;
+				var idk = sourcchunk.GetCell( src );
+				var old = GetCell( dst );
+				//CommitedMoveCell( chunk.GetIndex( dst ), sourcchunk.GetIndex( src ), ref idk, true );
+				SetCell( dst, ref idk, true );
+				sourcchunk.SetCell( src, ref old, true );
+				/* if ( dst != src )
 				{
-					//if ( (sourcchunk.IsEmpty( src ) || !IsEmpty( dst )) ) continue;
-					//cells[dst] = cells[src];
-					//cells[src] = default;
-					var idk = sourcchunk.GetCell( src );
-					var old = GetCell( dst );
-					//CommitedMoveCell( chunk.GetIndex( dst ), sourcchunk.GetIndex( src ), ref idk, true );
-					SetCell( dst, ref idk, true );
-					sourcchunk.SetCell( src, ref old, true );
-				}
-				else
-				{
-					//var temp = cells[dst];
-					//cells[dst] = cells[src];
-					//cells[src] = temp;
+					chunk.KeepAlive( dst );
+					sourcchunk.KeepAlive( src );
+				} */
 
-					var idk = sourcchunk.GetCell( src );
-					var old = GetCell( dst );
-					//swap the two cells
-					SetCell( dst, ref idk, true );
-					sourcchunk.SetCell( src, ref old, true );
-				}
 				//DrawPixel( dst, srcell.color );
 				iprev = i + 1;
 			}
