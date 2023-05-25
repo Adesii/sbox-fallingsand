@@ -11,13 +11,9 @@ public class SandChunk
 
 	public void KeepAlive( Vector2Int pos )
 	{
-		KeepAlivelocal( GetLocal( pos ) );
+		KeepAlivelocal( GetIndex( pos ) );
 	}
 
-	private Vector2Int GetLocal( Vector2Int pos )
-	{
-		return pos - Position;
-	}
 	void KeepAlivelocal( int index )
 	{
 		int x = index % Size.x;
@@ -25,11 +21,11 @@ public class SandChunk
 
 		lock ( this )
 		{
-			working_minX = Math.Min( working_minX, x - 10 ).Clamp( 0, Size.x );
-			working_minY = Math.Min( working_minY, y - 10 ).Clamp( 0, Size.y );
+			working_minX = Math.Min( working_minX, x - 2 ).Clamp( 0, Size.x );
+			working_minY = Math.Min( working_minY, y - 2 ).Clamp( 0, Size.y );
 
-			working_maxX = Math.Max( working_maxX, x + 10 ).Clamp( 0, Size.x );
-			working_maxY = Math.Max( working_maxY, y + 10 ).Clamp( 0, Size.y );
+			working_maxX = Math.Max( working_maxX, x + 2 ).Clamp( 0, Size.x );
+			working_maxY = Math.Max( working_maxY, y + 2 ).Clamp( 0, Size.y );
 			//Log.Info( $"KeepAlive: {x},{y} {working_minX} {working_maxX} {working_minY} {working_maxY} Size: {Size}" );
 		}
 		//if ( working_minX != rect_minX || working_maxX != rect_maxX || working_minY != rect_minY || working_maxY != rect_maxY )
@@ -67,8 +63,7 @@ public class SandChunk
 
 	public int GetIndex( Vector2Int pos )
 	{
-		return (pos.x - Position.x) +
-			(pos.y - Position.y) * Size.x;
+		return (pos.x - Position.x) + (pos.y - Position.y) * Size.x;
 	}
 	public bool InBounds( Vector2Int pos )
 	{
@@ -110,12 +105,12 @@ public class SandChunk
 		if ( !InBounds( pos ) )
 			return;
 		int index = GetIndex( pos );
-		SetCell( index, ref cell, wake );
+		SetCell( index, pos, ref cell, wake );
 		if ( wake )
 			KeepAlive( pos );
 	}
 
-	void SetCell( int index, ref Cell cell, bool wake = false )
+	void SetCell( int index, Vector2Int Position, ref Cell cell, bool wake = false )
 	{
 		if ( wake )
 			ShouldWakeup = wake;
@@ -125,6 +120,7 @@ public class SandChunk
 		}
 		else
 		{
+			cell.Position = Position;
 			cells[index] = cell;
 		}
 		DrawPixel( index, cell == null ? Color.Transparent : cell.color );

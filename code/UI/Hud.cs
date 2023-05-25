@@ -9,6 +9,7 @@ public partial class Hud : RootPanel
 	bool middleclick = false;
 
 	public static Vector2 CorrectMousePosition;
+	public static float ScaleFromScreenGlobal = 1f;
 
 
 	public override void OnMouseWheel( float value )
@@ -59,6 +60,7 @@ public partial class Hud : RootPanel
 	private void passer()
 	{
 		CorrectMousePosition = (MousePosition * (ScaleFromScreen) * ((float)SandWorld.ZoomLevel / 10f));
+		ScaleFromScreenGlobal = ScaleFromScreen;
 		Input.SetAction( "LeftClick", leftclick );
 
 		Input.SetAction( "RightClick", rightclick );

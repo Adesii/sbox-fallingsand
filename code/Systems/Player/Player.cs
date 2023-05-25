@@ -22,24 +22,36 @@ public partial class Player : AnimatedEntity
 
 		Tags.Add( "player" );
 	}
+
+	public override void ClientSpawn()
+	{
+		base.ClientSpawn();
+		delayspawn();
+	}
+	private async void delayspawn()
+	{
+		await GameTask.DelayRealtimeSeconds( 0.2f );
+		SandWorld.ZoomToFitMap();
+	}
 	TimeSince LastPaint = 0;
 	private Vector2Int OldPos;
 
 	private Vector2Int DragStart;
 
 	bool dragleft = false;
+	bool dragright = false;
 	bool dragzoom = false;
 	public override void BuildInput()
 	{
 		base.BuildInput();
 
-		if ( Input.Pressed( "LeftClick" ) && !Input.Down( "jump" ) && !dragleft )
+		if ( Input.Pressed( "LeftClick" ) && !dragleft )
 		{
 			OldPos = new Vector2Int( Hud.CorrectMousePosition );
 			dragleft = true;
 		}
 
-		if ( Input.Down( "LeftClick" ) && !Input.Down( "jump" ) )
+		if ( Input.Down( "LeftClick" ) )
 		{
 			var newpos = new Vector2Int( Hud.CorrectMousePosition );
 			SandWorld.BrushBetween( OldPos, newpos, 10, typeof( SandElement ) );
@@ -50,9 +62,10 @@ public partial class Player : AnimatedEntity
 			dragleft = false;
 		}
 
-		if ( Input.Pressed( "RightClick" ) )
+		if ( Input.Pressed( "RightClick" ) && !dragright )
 		{
 			OldPos = new Vector2Int( Hud.CorrectMousePosition );
+			dragright = true;
 		}
 
 		if ( Input.Down( "RightClick" ) )
@@ -60,6 +73,10 @@ public partial class Player : AnimatedEntity
 			var newpos = new Vector2Int( Hud.CorrectMousePosition );
 			SandWorld.BrushBetween( OldPos, newpos, 10, typeof( WaterElement ) );
 			OldPos = newpos;
+		}
+		else if ( dragright )
+		{
+			dragright = false;
 		}
 
 

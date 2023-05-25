@@ -12,7 +12,8 @@ public class Sandworker
 		this.wchunk = new( chunk );
 	}
 
-
+	[ConVar.Client( "SandUseRandomPattern", Help = "Use random pattern for sand" )]
+	public static bool UseRandomPattern { get; set; } = false;
 	public void UpdateChunk()
 	{
 		if ( wchunk.TryGetTarget( out var nchunk ) )
@@ -20,9 +21,42 @@ public class Sandworker
 			bool sleep = true;
 			bool shouldsleep = true;
 
-			for ( int y = nchunk.rect_minY; y < nchunk.rect_maxY; y++ )
+			if ( !UseRandomPattern )
 			{
 				for ( int x = nchunk.rect_minX; x < nchunk.rect_maxX; x++ )
+				{
+					for ( int y = nchunk.rect_minY; y < nchunk.rect_maxY; y++ )
+					{
+						UpdateCell( new Vector2Int( x, y ) + nchunk.Position, out shouldsleep );
+						if ( !shouldsleep )
+						{
+							sleep = false;
+						}
+					}
+				}
+			}
+			else
+			{
+				List<(int, int)> coordinates = new();
+
+
+				for ( int y = nchunk.rect_minY; y < nchunk.rect_maxY; y++ )
+				{
+					for ( int x = nchunk.rect_minX; x < nchunk.rect_maxX; x++ )
+					{
+						coordinates.Add( (x, y) );
+
+					}
+				}
+
+				int count = coordinates.Count;
+				for ( int i = count - 1; i > 0; i-- )
+				{
+					int j = Game.Random.Next( i + 1 );
+					(coordinates[j], coordinates[i]) = (coordinates[i], coordinates[j]);
+				}
+
+				foreach ( var (x, y) in coordinates )
 				{
 					UpdateCell( new Vector2Int( x, y ) + nchunk.Position, out shouldsleep );
 					if ( !shouldsleep )
@@ -30,8 +64,11 @@ public class Sandworker
 						sleep = false;
 					}
 				}
+
 			}
 			nchunk.sleeping = sleep;
+
+
 		}
 
 	}
@@ -42,7 +79,7 @@ public class Sandworker
 		sleep = true;
 	}
 
-	protected Cell GetCell( Vector2Int pos )
+	public Cell GetCell( Vector2Int pos )
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return default;
 		if ( chunk.InBounds( pos ) )
@@ -51,7 +88,7 @@ public class Sandworker
 			return world.GetCell( pos );
 	}
 
-	protected void SetCellVelocity( Vector2Int pos, Vector2Int vel )
+	public void SetCellVelocity( Vector2Int pos, Vector2Int vel )
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return;
 		if ( chunk.InBounds( pos ) )
@@ -60,7 +97,7 @@ public class Sandworker
 			world.SetCellVelocity( pos, vel );
 	}
 
-	protected void SetCell( Vector2Int pos, ref Cell cell, bool wake = false )
+	public void SetCell( Vector2Int pos, ref Cell cell, bool wake = false )
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return;
 
@@ -72,16 +109,16 @@ public class Sandworker
 	}
 
 
-	protected void MoveCell( Vector2Int From, Vector2Int To, bool Swap = false )
+	public void MoveCell( Vector2Int From, Vector2Int To, bool Swap = false )
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return;
 
 		int pingx = 0, pingy = 0;
 
-		if ( From.x == chunk.Position.x ) pingx = -1;
-		if ( From.x == chunk.Position.x + chunk.Size.x - 1 ) pingx = 1;
-		if ( From.y == chunk.Position.y ) pingy = -1;
-		if ( From.y == chunk.Position.y + chunk.Size.y - 1 ) pingy = 1;
+		if ( From.x <= chunk.Position.x + 1 ) pingx = -5;
+		if ( From.x >= chunk.Position.x + chunk.Size.x - 1 ) pingx = 5;
+		if ( From.y <= chunk.Position.y + 1 ) pingy = -5;
+		if ( From.y >= chunk.Position.y + chunk.Size.y - 1 ) pingy = 5;
 
 		if ( pingx != 0 ) world.KeepAlive( new Vector2Int( From.x + pingx, From.y ) );
 		if ( pingy != 0 ) world.KeepAlive( new Vector2Int( From.x, From.y + pingy ) );
@@ -95,13 +132,13 @@ public class Sandworker
 			world.MoveCell( From, To, Swap );
 	}
 
-	protected bool InBounds( Vector2Int pos )
+	public bool InBounds( Vector2Int pos )
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return false;
 		return chunk.InBounds( pos ) || world.InBounds( pos );
 	}
 
-	protected bool IsEmpty( Vector2Int pos )
+	public bool IsEmpty( Vector2Int pos )
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return false;
 		if ( chunk.InBounds( pos ) )

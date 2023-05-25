@@ -9,19 +9,16 @@ public class WorldDisplay : Panel
 
 	public override void DrawContent( ref RenderState state )
 	{
-		Rect worldRect = new( 0, new Vector2( SandWorld.ChunkWidth, SandWorld.ChunkHeight ) );
-
-		worldRect.Right += (SandWorld.Limit.RightLimit - 1) * SandWorld.ChunkWidth;
-		worldRect.Top += SandWorld.Limit.UpLimit * SandWorld.ChunkHeight + 1;
-
-		worldRect.Left -= (SandWorld.Limit.LeftLimit - 1) * SandWorld.ChunkWidth;
-		worldRect.Bottom -= SandWorld.Limit.DownLimit * SandWorld.ChunkHeight - 1;
+		SandWorld.WorldLimit limit = SandWorld.Limit;
+		Rect worldRect = limit.GetRect();
+		worldRect *= new Vector2( SandWorld.ChunkWidth, SandWorld.ChunkHeight );
+		//worldRect += new Vector2( 0, SandWorld.ChunkHeight * 2 );
+		worldRect.Top += 1;
 
 		/* var top = worldRect.Top;
 		var bottom = worldRect.Bottom;
 		worldRect.Top = -bottom;
 		worldRect.Bottom = -top; */
-		worldRect += new Vector2( 0, SandWorld.ChunkHeight );
 
 		worldRect.Position += SandWorld.WorldPosition;
 		worldRect *= ScaleToScreen / ((float)SandWorld.ZoomLevel / 10f);

@@ -22,21 +22,21 @@ public class SandDisplay : Panel
 			if ( chunk.Value.Texture == null || !chunk.Value.Texture.IsLoaded ) continue;
 			var attribs = new RenderAttributes();
 			attribs.Set( "Texture", chunk.Value.Texture );
-			Rect rect = new( new Vector2( chunk.Key.x * chunk.Value.Size.x, (1 - chunk.Key.y * chunk.Value.Size.y) ), new Vector2( SandWorld.ChunkWidth, SandWorld.ChunkHeight ) ); ;
+			Rect rect = new( new Vector2( chunk.Key.x * chunk.Value.Size.x, 1 - (chunk.Key.y * chunk.Value.Size.y) ), new Vector2( SandWorld.ChunkWidth, SandWorld.ChunkHeight ) ); ;
 			rect += new Vector2( 0, SandWorld.ChunkHeight );
 			rect.Position += SandWorld.WorldPosition;
 			rect *= ScaleToScreen / ((float)SandWorld.ZoomLevel / 10f);
 
-			if ( !chunk.Value.IsCurrentlySleeping && ChunkDebugDraw > 0 )
+			if ( (!chunk.Value.IsCurrentlySleeping && ChunkDebugDraw > 0) || ChunkDebugDraw >= 5 )
 			{
-				if ( ChunkDebugDraw >= 1 && ChunkDebugDraw <= 2 )
+				if ( ChunkDebugDraw >= 1 && ChunkDebugDraw <= 2 || ChunkDebugDraw >= 5 )
 					DebugOverlay.Texture( Texture.Transparent, rect, 0.2f );
 
 				if ( ChunkDebugDraw >= 2 && ChunkDebugDraw <= 3 )
 				{
 					var keepaliverect = new Rect( chunk.Value.rect_minX, 1 - chunk.Value.rect_minY, chunk.Value.rect_maxX - chunk.Value.rect_minX, (1 - chunk.Value.rect_maxY) - (1 - chunk.Value.rect_minY) );
 
-					keepaliverect += new Vector2( 0, chunk.Value.Size.y );
+					keepaliverect += new Vector2( 0, SandWorld.ChunkHeight );
 
 
 					keepaliverect *= ScaleToScreen / ((float)SandWorld.ZoomLevel / 10f);

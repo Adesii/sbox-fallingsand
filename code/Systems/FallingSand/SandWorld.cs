@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Sand.UI;
 using Sand.util;
@@ -26,6 +27,41 @@ public class SandWorld
 		ChunkHeight = 64;
 	}
 
+	[ConCmd.Client]
+	public static void CenterAround( int x, int y )
+	{
+		Instance.CenterAroundPosition( new Vector2Int( x, y ) );
+	}
+
+	public void CenterAroundPosition( Vector2Int pos )
+	{
+		WorldPosition = pos - new Vector2Int( new Vector2( ChunkWidth / 2, (ChunkHeight / 2) - 1 ) - ((Screen.Size / 2) * (Hud.ScaleFromScreenGlobal) * ((float)SandWorld.ZoomLevel / 10f)) );
+		WorldPosition += new Vector2Int( 0, SandWorld.ChunkHeight );
+		//if world limit is even, we need to offset by half a chunk
+		if ( Limit.LeftLimit + Limit.RightLimit == 0 )
+		{
+			WorldPosition += new Vector2Int( ChunkWidth / 2, 0 );
+		}
+		//if world limit is even, we need to offset by half a chunk
+		if ( Limit.UpLimit + Limit.DownLimit == 0 )
+		{
+			WorldPosition -= new Vector2Int( 0, ChunkHeight / 2 );
+		}
+	}
+
+	[ConCmd.Client]
+	public static void ZoomToFitMap()
+	{
+
+		ZoomLevel = 1;
+		var worldRect = Limit.GetRect();
+		var worldSize = new Vector2( worldRect.Width, worldRect.Height ) * 8;
+		var screenSize = Screen.Size;
+		var scale = screenSize / worldSize;
+		ZoomLevel = (int)(scale.x / 10);
+		CenterAround( 0, 0 );
+	}
+
 	public struct WorldLimit
 	{
 		public int LeftLimit;
@@ -33,6 +69,7 @@ public class SandWorld
 		public int UpLimit;
 		public int DownLimit;
 
+		//left can be negative, right can be positive, up can be positive, down can be negative
 		public WorldLimit( int left, int right, int up, int down )
 		{
 			LeftLimit = left;
@@ -41,18 +78,22 @@ public class SandWorld
 			DownLimit = down;
 		}
 
-		bool CheckWithLimitless( int limit, int pos, bool positive )
-		{
-			return limit == 0 || ((pos < limit && positive) || (pos > limit && !positive));
-		}
-
 		public bool InBounds( Vector2Int pos )
 		{
-			return CheckWithLimitless( -LeftLimit, pos.x, false ) && CheckWithLimitless( RightLimit, pos.x, true ) && CheckWithLimitless( UpLimit, pos.y, true ) && CheckWithLimitless( -DownLimit, pos.y, false );
+			pos.y = 1 - pos.y;
+			return (pos.x >= LeftLimit || LeftLimit == 0)
+			&& (pos.x < RightLimit || RightLimit == 0)
+			&& (pos.y >= DownLimit || DownLimit == 0)
+			&& (pos.y < UpLimit || UpLimit == 0);
+		}
+
+		public Rect GetRect()
+		{
+			return new Rect( LeftLimit, DownLimit, RightLimit - LeftLimit, UpLimit - DownLimit );
 		}
 	}
 
-	public static WorldLimit Limit = new( 2, 2, 2, 2 );
+	public static WorldLimit Limit = new( 0, 2, 2, -2 );
 
 	public Texture DrawTexture;
 	public Texture CellTexture;
@@ -63,7 +104,7 @@ public class SandWorld
 
 	public static Vector2Int WorldPosition = new( 0, 0 );
 
-	private static int Zoom = 10;
+	private static int Zoom = 1;
 	public static int ZoomLevel
 	{
 		get => Zoom;
@@ -202,6 +243,7 @@ public class SandWorld
 		{
 			if ( Instance.GetCell( new Vector2Int( x, y ) ) is SandElement )
 			{
+				//Instance.KeepAlive( new Vector2Int( x, y ) );
 				return;
 			}
 			cell = new SandElement();
@@ -210,6 +252,7 @@ public class SandWorld
 		{
 			if ( Instance.GetCell( new Vector2Int( x, y ) ) is WaterElement )
 			{
+				//Instance.KeepAlive( new Vector2Int( x, y ) );
 				return;
 			}
 			cell = new WaterElement();
@@ -288,6 +331,9 @@ public class SandWorld
 		//using var _a = Profile.Scope( "Sandworld::Update" );
 		updating = true;
 
+		Stopwatch sw = new();
+		sw.Start();
+
 
 
 
@@ -298,13 +344,15 @@ public class SandWorld
 		foreach ( var chunk in chunks )
 		{
 			if ( !chunk.Value.cells.IsEmpty && (!chunk.Value.IsCurrentlySleeping || chunk.Value.ShouldWakeup) )
-				tasks.Add( GameTask.RunInThreadAsync( () =>
-				{
+			{
+				if ( chunk.Value.ShouldWakeup )
 					chunk.Value.ShouldWakeup = false;
-					new SimpleSandWorker( this, chunk.Value ).UpdateChunk();
+				tasks.Add( GameTask.RunInThreadAsync( () =>
+							{
+								new SimpleSandWorker( this, chunk.Value ).UpdateChunk();
 
-				} ) );
-
+							} ) );
+			}
 			totalamountofcells += chunk.Value.cells.Count;
 		}
 		DebugOverlay.ScreenText( $"Active Threads: {tasks.Count}  \n :: {totalamountofcells}", 0, 0.1f );
@@ -333,6 +381,9 @@ public class SandWorld
 
 
 		RemoveEmptyChunks();
+
+		sw.Stop();
+		DebugOverlay.ScreenText( $"Sandworld::Update {sw.ElapsedMilliseconds}ms", 10, sw.Elapsed.Seconds * 1.5f );
 
 
 		updating = false;
