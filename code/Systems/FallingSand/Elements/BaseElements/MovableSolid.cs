@@ -7,7 +7,7 @@ public class MovableSolid : Cell
 		sleep = MoveDown( worker );
 		if ( !sleep )
 			return;
-		sleep = MoveDirection( worker, Vector2Int.Left + Vector2Int.Down, Vector2Int.Right + Vector2Int.Down );
+		sleep = MoveDirection( worker, Vector2Int.Left + Vector2Int.Down, Vector2Int.Right + Vector2Int.Down, 2, 2 );
 	}
 }
 

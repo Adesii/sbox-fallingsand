@@ -1,0 +1,11 @@
+@inherits Panel
+@using Sandbox;
+@using Sandbox.UI;
+
+@attribute [StyleSheet]
+<root class="Toolbar">
+    @foreach (var item in @Elements)
+    {
+        <ElementsPicture Element="@item" />
+    }
+</root>

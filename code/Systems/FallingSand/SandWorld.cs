@@ -339,7 +339,7 @@ public class SandWorld
 			}
 			totalamountofcells += chunk.Value.cells.Count;
 		}
-		DebugOverlay.ScreenText( $"Active Threads: {tasks.Count}  \n :: {totalamountofcells}", 0, 0.1f );
+		DebugOverlay.ScreenText( $"Active Threads: {tasks.Count}  \n :: {totalamountofcells}", new Vector2( Screen.Width - 300, 50 ), 0.1f );
 		await GameTask.WhenAll( tasks.ToArray() );
 		tasks.Clear();
 
@@ -362,7 +362,7 @@ public class SandWorld
 		RemoveEmptyChunks();
 
 		sw.Stop();
-		DebugOverlay.ScreenText( $"Sandworld::Update {sw.ElapsedMilliseconds}ms", 10, sw.Elapsed.Seconds * 1.5f );
+		DebugOverlay.ScreenText( $"Sandworld::Update {sw.ElapsedMilliseconds}ms", new Vector2( Screen.Width - 300, 30 ), sw.Elapsed.Seconds * 2f );
 
 
 		updating = false;

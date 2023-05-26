@@ -1,5 +1,6 @@
 namespace Sand.Systems.FallingSand.Elements;
 
+[Element]
 public class OilElement : Liquid
 {
 	public OilElement()

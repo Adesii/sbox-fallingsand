@@ -7,7 +7,7 @@ public partial class SandGame : GameManager
 	{
 		if ( Game.IsClient )
 		{
-			Game.RootPanel = new Sand.UI.Hud();
+			Game.RootPanel = new UI.Hud();
 
 		}
 	}

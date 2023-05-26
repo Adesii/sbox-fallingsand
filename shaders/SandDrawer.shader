@@ -36,7 +36,7 @@ PS
 
 	float4 g_vViewport < Source( Viewport ); >;
 	float4 g_vInvTextureDim < Source( InvTextureDim ); SourceArg( g_tColor ); >;
-	CreateTexture2D( g_tColor ) < Attribute( "Texture" ); SrgbRead( true ); Filter( NEAREST ); >;
+	CreateTexture2D( g_tColor ) < Attribute( "Texture" ); SrgbRead( true ); Filter( NEAREST ); AddressU( MIRROR ); AddressV( MIRROR ); >;
 
 	RenderState( SrgbWriteEnable0, true );
 	RenderState( ColorWriteEnable0, RGBA );

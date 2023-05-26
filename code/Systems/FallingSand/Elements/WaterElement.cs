@@ -2,6 +2,7 @@ using Sand.Systems.FallingSand.Elements;
 
 namespace Sand.Systems.FallingSand;
 
+[Element]
 public class WaterElement : Liquid
 {
 	public WaterElement()

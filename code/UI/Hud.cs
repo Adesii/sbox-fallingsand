@@ -61,14 +61,34 @@ public partial class Hud : RootPanel
 	{
 		CorrectMousePosition = (MousePosition * (ScaleFromScreen) * ((float)SandWorld.ZoomLevel / 10f));
 		ScaleFromScreenGlobal = ScaleFromScreen;
-		Input.SetAction( "LeftClick", leftclick );
+		if ( !IsHoveringPanel( this ) )
+		{
+			Input.SetAction( "LeftClick", leftclick );
+			Input.SetAction( "RightClick", rightclick );
+			Input.SetAction( "MiddleClick", middleclick );
+		}
+		else
+		{
+			Input.SetAction( "LeftClick", false );
+			Input.SetAction( "RightClick", false );
+			Input.SetAction( "MiddleClick", false );
+		}
 
-		Input.SetAction( "RightClick", rightclick );
-		Input.SetAction( "MiddleClick", middleclick );
 
 		//if ( Input.Pressed( "zoom" ) )
 		//	Log.Info( "zoom" );
 		//Log.Info( middleclick );
+	}
+
+	public bool IsHoveringPanel( Panel Source )
+	{
+		if ( Source != this )
+			if ( Source.HasHovered && ((Sandbox.Internal.IPanel)Source).WantsPointerEvents ) return true;
+		foreach ( var child in Source.Children )
+		{
+			if ( IsHoveringPanel( child ) ) return true;
+		}
+		return false;
 	}
 }
 
