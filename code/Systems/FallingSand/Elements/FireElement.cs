@@ -1,3 +1,5 @@
+using Sand.util;
+
 namespace Sand.Systems.FallingSand.Elements;
 
 [Element]
@@ -7,10 +9,13 @@ public class FireElement : Gas
 	public override float DisperseRate => 2f;
 	TimeSince timeSinceIgnite = 0f;
 	TimeSince lastIgnite = 0f;
+
+	public override float HeatTransferRate => 10;
 	public FireElement()
 	{
 		timeSinceIgnite = 0f;
 		lastIgnite = 10f;
+		Heat = 1900;
 	}
 
 	public override Color GetColor()
@@ -23,27 +28,6 @@ public class FireElement : Gas
 	public override void PostStep( Sandworker worker, out bool sleep )
 	{
 		FinalizeMove( worker, this, Velocity, out Vector2Int NewPos );
-		if ( lastIgnite > 0.05f )
-		{
-			if ( worker.GetCell( Position + Vector2Int.Left ) is IFlamable leftcell )
-			{
-				leftcell.Ignite( worker, (Cell)leftcell, this );
-			}
-			if ( worker.GetCell( Position + Vector2Int.Right ) is IFlamable rightcell )
-			{
-				rightcell.Ignite( worker, (Cell)rightcell, this );
-			}
-			if ( worker.GetCell( Position + Vector2Int.Down * 2 ) is IFlamable downcell )
-			{
-				downcell.Ignite( worker, (Cell)downcell, this );
-			}
-			if ( worker.GetCell( Position + Vector2Int.Up ) is IFlamable upcell )
-			{
-				upcell.Ignite( worker, (Cell)upcell, this );
-			}
-			lastIgnite = 0f;
-		}
-
 
 		if ( timeSinceIgnite > 1f )
 		{
@@ -58,6 +42,24 @@ public class FireElement : Gas
 			worker.KeepAlive( Position );
 		}
 		sleep = false;
+	}
+
+	public override void HeatElement( Sandworker worker, float heat )
+	{
+	}
+
+
+	public override void HeatStep( Sandworker worker, out bool heattransfered )
+	{
+
+		heattransfered = true;
+		PropagateHeat( worker, 3, Heat );
+	}
+
+	public override void OnHit( Sandworker worker, Cell hitCell )
+	{
+		base.OnHit( worker, hitCell );
+		hitCell.HeatElement( worker, Heat );
 	}
 
 

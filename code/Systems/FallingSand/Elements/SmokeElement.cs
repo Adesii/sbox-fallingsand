@@ -28,6 +28,7 @@ public class SmokeElement : Gas
 	{
 		timeSinceCreated = 0;
 		CellColor = Color.FromBytes( 15, 15, 15, 255 ).Lighten( Game.Random.Float( 0.8f, 1.2f ) );
+		Heat = 1500;
 	}
 
 	public override void Step( Sandworker worker )

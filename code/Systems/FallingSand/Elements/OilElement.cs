@@ -11,5 +11,14 @@ public class Oil : Liquid, IFlamable
 		CellColor = Color.FromBytes( 15, 15, 15, 255 ).Lighten( Game.Random.Float( 0.9f, 1.1f ) );
 	}
 
+	public override void OnHeated( Sandworker worker )
+	{
+		base.OnHeated( worker );
+		if ( Heat > 800 )
+		{
+			worker.SetCell( Position, new FireElement(), true );
+		}
+	}
+
 }
 

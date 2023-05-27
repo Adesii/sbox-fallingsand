@@ -19,4 +19,13 @@ public class Coal : MovableSolid, IFlamable
 		Density = 1;
 	}
 
+	public override void OnHeated( Sandworker worker )
+	{
+		base.OnHeated( worker );
+		if ( Heat > 1000 )
+		{
+			worker.SetCell( Position, new FireElement(), true );
+		}
+	}
+
 }

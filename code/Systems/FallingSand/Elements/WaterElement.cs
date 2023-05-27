@@ -38,4 +38,15 @@ public class Water : Liquid, IFlamable
 		}
 		return CellColor;
 	}
+
+	public override void OnHeated( Sandworker worker )
+	{
+		if ( Heat > HighTemperatureTransitionPoint )
+		{
+			worker.SetCell( Position, new Steam()
+			{
+				Heat = Heat
+			}, true );
+		}
+	}
 }

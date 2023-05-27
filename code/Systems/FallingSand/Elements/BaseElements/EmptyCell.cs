@@ -7,5 +7,6 @@ public class EmptyCell : Cell
 	{
 		CellColor = Color.Transparent;
 		Density = 0;
+		Heat = 293;
 	}
 }

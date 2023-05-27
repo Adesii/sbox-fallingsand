@@ -6,6 +6,8 @@ public class Steam : Gas
 	TimeSince GasTimer = 0f;
 	public override float MaxVelocity => 1.1f;
 
+	public override float HeatTransferRate => 0.1f;
+
 	public Steam()
 	{
 		GasTimer = Game.Random.Float( -1f, 1f );
@@ -18,12 +20,20 @@ public class Steam : Gas
 	public override void PostStep( Sandworker worker, out bool sleep )
 	{
 		base.PostStep( worker, out sleep );
+		HeatElement( worker, -1 );
+		OnHeated( worker );
+	}
 
-		if ( GasTimer > 4f )
+	public override void OnHeated( Sandworker worker )
+	{
+		if ( Heat < LowTemperatureTransitionPoint )
 		{
-			worker.SetCell( Position, new Water() );
-			sleep = true;
+			worker.SetCell( Position, new Water()
+			{
+				Heat = Heat
+			}, true );
 		}
+
 	}
 }
 

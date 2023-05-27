@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Sand.util;
 
 namespace Sand.Systems.FallingSand;
 
@@ -173,6 +174,9 @@ public class SandChunk
 
 	public TimeSince SleepTime = 0;
 
+	[ConVar.Client]
+	public static bool ShowHeatmap { get; set; } = true;
+
 	public void Draw()
 	{
 		pixels ??= new Color32[Size.x * Size.y];
@@ -180,9 +184,46 @@ public class SandChunk
 
 		for ( int i = 0; i < Size.x * Size.y; i++ )
 		{
-			pixels[i] = GetCell( i )?.GetColor() ?? Color.Transparent;
+			Cell c = GetCell( i );
+			if ( c.IsAirOrNull() )
+			{
+				pixels[i] = Color.Transparent;
+				continue;
+			}
+			if ( !ShowHeatmap )
+			{
+				pixels[i] = c?.GetColor() ?? Color.Transparent;
+			}
+			else
+			{
+				pixels[i] = Color.Lerp( GetHeatColor( c.Heat ), c.GetColor(), 0.5f );
+			}
 		}
 		Texture.Update( pixels, 0, 0, Size.x, Size.y );
+	}
+
+	public Color GetHeatColor( float heat )
+	{
+		//get heat color based on kelvin
+		//https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spectrum
+		Color LowColor = new( 0.0f, 0.0f, 1.0f );
+		Color HighColor = new( 1.0f, 0.0f, 0.0f );
+		Color ExtremeHeatColor = new Color( 1.0f, 0.9f, 0.6f ) * 2.5f;
+
+		float t = heat / 1000.0f;
+		if ( t < 0.0f ) t = 0.0f;
+		if ( t > 1.0f ) t = 1.0f;
+
+		if ( t < 0.5f )
+		{
+			t *= 2.0f;
+			return Color.Lerp( LowColor, HighColor, t );
+		}
+		else
+		{
+			t = (t - 0.5f) * 2.0f;
+			return Color.Lerp( HighColor, ExtremeHeatColor, t );
+		}
 	}
 }
 

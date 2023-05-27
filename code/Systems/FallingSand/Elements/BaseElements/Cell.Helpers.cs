@@ -29,14 +29,13 @@ public partial class Cell
 	}
 	protected virtual bool FinalizeMove( Sandworker worker, Cell cell, Vector2 NewVel, out Vector2Int newPos )
 	{
-		if ( NewVel.Length <= 1f + float.Epsilon )
+		/* if ( NewVel.Length <= 1f + float.Epsilon )
 		{
 			cell.Velocity = NewVel;
 			newPos = cell.Position;
 			return true;
-		}
+		} */
 		var HitResult = CheckPosVelocity( worker, cell, NewVel );
-		cell.OnHit( worker, HitResult.HitCell );
 		if ( HitResult.Moved )
 		{
 			worker.MoveCell( cell.Position, HitResult.Position, true );
@@ -71,13 +70,14 @@ public partial class Cell
 		SandUtils.PointToPointFunction( cell.Position, cell.Position + newVel, ( pos ) =>
 		{
 			if ( hitsomething ) return;
-			if ( SandUtils.CanSwap( worker, cell, pos, out var thehitcell ) && !hitsomething )
+			if ( SandUtils.CanSwap( worker, cell, pos, out var thehitcell ) && (cell.Position != pos) && !hitsomething )
 			{
 				currentPos = pos;
-				hitcell = worker.GetCell( pos + newVel );
+				hitcell = thehitcell;
 			}
-			else
+			else if ( cell.Position != pos )
 			{
+				hitcell = worker.GetCell( pos + vel );
 				hitsomething = true;
 			}
 		} );
