@@ -19,7 +19,10 @@ public class SimpleSandWorker : Sandworker
 			Log.Info( "No chunk" );
 			return;
 		}
-		chunk.GetCell( Position ).Step( this, out sleep );
+		Cell cc = chunk.GetCell( Position );
+		cc.PreStep( this );
+		cc.Step( this );
+		cc.PostStep( this, out sleep );
 
 	}
 
@@ -65,8 +68,8 @@ public class SimpleSandWorker : Sandworker
 				var idk = sourcchunk.GetCell( src );
 				var old = GetCell( dst );
 				//CommitedMoveCell( chunk.GetIndex( dst ), sourcchunk.GetIndex( src ), ref idk, true );
-				SetCell( dst, ref idk, true );
-				sourcchunk.SetCell( src, ref old, true );
+				SetCell( dst, idk, true );
+				sourcchunk.SetCell( src, old, true );
 				//Log.Info( $"Moved {src} to {dst}" );
 
 				/* if ( dst != src )

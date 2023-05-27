@@ -4,10 +4,14 @@ namespace Sand.Systems.FallingSand;
 
 public partial class Cell
 {
-	protected bool MoveDown( Sandworker worker )
+	protected bool MoveLinear( Sandworker worker )
 	{
-		Vector2 down = Vector2.Down; //GetGravityAtPosition( worker, this );
-		if ( !SandUtils.CanSwap( worker, this, Position + GetGravityCheckDir( down ) ) )
+		return MoveLinear( worker, Vector2.Down );
+	}
+	protected bool MoveLinear( Sandworker worker, Vector2 Dir )
+	{
+		Vector2 down = Dir; //GetGravityAtPosition( worker, this );
+		if ( !SandUtils.CanSwap( worker, this, Position + new Vector2Int( down ) ) )
 		{
 			// Convert Vertical Velocity to Horizontal Velocity on impact
 			if ( ShouldBounceToSide )
@@ -23,19 +27,19 @@ public partial class Cell
 				}
 				Velocity.y = 0;
 			}
+			Velocity = Velocity.Clamp( -MaxVelocity, MaxVelocity );
 			return false;
 		}
 
 		Velocity += down * 2f;
+		Velocity = Velocity.Clamp( -MaxVelocity, MaxVelocity );
 		return true;
 	}
 
 	protected bool MoveDirection( Sandworker worker, Vector2 dir1, Vector2 dir2, float Vel1 = 1, float Vel2 = 1 )
 	{
-		Cell leftcell = worker.GetCell( Position + dir1.SnapToGrid( 1 ) );
-		Cell rightcell = worker.GetCell( Position + dir2.SnapToGrid( 1 ) );
-		bool left = SandUtils.IsAir( leftcell ) || (leftcell?.Density ?? 0) > Density;
-		bool right = SandUtils.IsAir( rightcell ) || (rightcell?.Density ?? 0) > Density;
+		bool left = SandUtils.CanSwap( worker, this, Position + new Vector2Int( dir1 ), out var leftcell );
+		bool right = SandUtils.CanSwap( worker, this, Position + new Vector2Int( dir2 ), out var rightcell );
 		if ( left && right )
 		{
 			left = Game.Random.Float() > 0.5f;
@@ -50,6 +54,7 @@ public partial class Cell
 		{
 			Velocity += dir2 * Vel2;
 		}
+		Velocity = Velocity.Clamp( -MaxVelocity, MaxVelocity );
 		return left || right;
 	}
 }

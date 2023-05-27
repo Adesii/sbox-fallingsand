@@ -61,24 +61,28 @@ public static class SandUtils
 			function( v );
 		}
 	}
-
-	public static bool CanSwap( Sandworker worker, Cell a, Vector2Int swappos )
+	public static bool CanSwap( Sandworker worker, Cell a, Vector2Int swappos, out Cell b )
 	{
-		Cell b = worker.GetCell( swappos );
-		if ( b == null )
+		var cb = worker.GetCell( swappos );
+		b = cb;
+		if ( cb == null )
 		{
 			return false;
 		}
-		if ( b.IsAir() )
+		if ( cb.IsAir() )
 		{
 			return true;
 		}
-		if ( a.GetType() == b.GetType() )
+		if ( a.GetType() == cb.GetType() )
 		{
 			return false;
 		}
-		return a.Density < b.Density;
+		return a.Density > cb.Density;
 
+	}
+	public static bool CanSwap( Sandworker worker, Cell a, Vector2Int swappos )
+	{
+		return CanSwap( worker, a, swappos, out _ );
 	}
 
 	internal static bool IsAir( this Cell leftcell )

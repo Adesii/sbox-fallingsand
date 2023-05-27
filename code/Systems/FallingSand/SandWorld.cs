@@ -31,8 +31,8 @@ public class SandWorld
 	SandWorld()
 	{
 		Event.Register( this );
-		ChunkWidth = 64;
-		ChunkHeight = 64;
+		ChunkWidth = 16;
+		ChunkHeight = 16;
 	}
 
 	[ConCmd.Client]
@@ -141,10 +141,10 @@ public class SandWorld
 		return GetChunk( pos )?.GetCell( pos ) ?? null;
 	}
 
-	public void SetCell( Vector2Int pos, ref Cell cell, bool wake = false )
+	public void SetCell( Vector2Int pos, Cell cell, bool wake = false )
 	{
 		var cc = GetChunk( pos );
-		cc?.SetCell( pos, ref cell, wake );
+		cc?.SetCell( pos, cell, wake );
 		if ( wake )
 		{
 			cc?.KeepAlive( pos );
@@ -254,7 +254,7 @@ public class SandWorld
 			return;
 		}
 		var cell = TypeLibrary.Create<Cell>( type );
-		Instance.SetCell( new Vector2Int( x, y ), ref cell, true );
+		Instance.SetCell( new Vector2Int( x, y ), cell, true );
 
 		//Log.Info( $"Set cell {x} {y} to {type}" );
 	}

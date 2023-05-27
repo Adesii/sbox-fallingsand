@@ -4,7 +4,8 @@ public class MovableSolid : Cell
 {
 	protected bool IsFreeFalling = true;
 	public virtual float Inertia { get; set; } = 0.3f;
-	public override void Step( Sandworker worker, out bool sleep )
+	public override int Density => 100;
+	public override void Step( Sandworker worker )
 	{
 		Vector2 gravity = Vector2.Down; //GetGravityAtPosition( worker, this );
 										//Right rotated from gravity
@@ -12,7 +13,7 @@ public class MovableSolid : Cell
 		//Left rotated from gravity
 		Vector2 left = -right;
 
-		if ( !MoveDown( worker ) )
+		if ( !MoveLinear( worker ) )
 		{
 			if ( IsFreeFalling )
 				if ( !MoveDirection( worker, (Vector2)(Vector2Int.Down + Vector2Int.Right), (Vector2)(Vector2Int.Down + Vector2Int.Left), 1f, 1f ) )
@@ -37,14 +38,18 @@ public class MovableSolid : Cell
 
 		}
 
+	}
+
+	public override void PostStep( Sandworker worker, out bool sleep )
+	{
 		if ( !FinalizeMove( worker, this, Velocity, out Vector2Int NewPos ) )
 		{
 			IsFreeFalling = true;
-			if ( worker.GetCell( NewPos + left ) is MovableSolid leftcell )
+			if ( worker.GetCell( NewPos + Vector2Int.Left ) is MovableSolid leftcell )
 			{
 				leftcell.FreeFall( worker );
 			}
-			if ( worker.GetCell( NewPos + right ) is MovableSolid rightcell )
+			if ( worker.GetCell( NewPos + Vector2Int.Right ) is MovableSolid rightcell )
 			{
 				rightcell.FreeFall( worker );
 			}
@@ -53,7 +58,6 @@ public class MovableSolid : Cell
 		sleep = Velocity.Length.AlmostEqual( 0 );
 		if ( !sleep )
 			SandWorld.Instance.KeepAlive( Position );
-
 	}
 
 	private void FreeFall( Sandworker worker )

@@ -55,19 +55,18 @@ public class Sandworker
 			return world.GetCell( pos );
 	}
 
-	public void SetCell( Vector2Int pos, ref Cell cell, bool wake = false )
+	public void SetCell( Vector2Int pos, Cell cell, bool wake = false )
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return;
 		//PingChunk( pos, chunk, world );
 		if ( chunk.InBounds( pos ) )
 		{
-			if ( chunk.GetCell( pos ).GetType() != cell.GetType() )
+			if ( chunk.GetCell( pos ).GetType() != cell?.GetType() )
 				chunk.KeepAlive( pos );
-			chunk.SetCell( pos, ref cell, wake );
+			chunk.SetCell( pos, cell, wake );
 		}
 		else
-			world.SetCell( pos, ref cell, wake );
-
+			world.SetCell( pos, cell, wake );
 	}
 
 	private void PingChunk( Vector2Int Position, SandChunk chunk, SandWorld world )
@@ -118,6 +117,15 @@ public class Sandworker
 			chunk.MoveCell( chunk, From, To, Swap );
 		else
 			world.MoveCell( From, To, Swap );
+	}
+
+	public void KeepAlive( Vector2Int pos )
+	{
+		if ( !wchunk.TryGetTarget( out var chunk ) || !wworld.TryGetTarget( out var world ) ) return;
+		if ( chunk.InBounds( pos ) )
+			chunk.KeepAlive( pos );
+		else
+			world.KeepAlive( pos );
 	}
 
 	public bool InBounds( Vector2Int pos )

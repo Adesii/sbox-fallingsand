@@ -6,19 +6,39 @@ public partial class Cell
 {
 	public Vector2Int Position;
 	public static Cell Empty = new EmptyCell();
-	public Color32 color;
+	protected Color CellColor;
 	public Vector2 Velocity;
-	public int Density;
+	public virtual int Density { get; set; } = 1;
+
+	public virtual float MaxVelocity { get; private set; } = 6f;
 
 	protected virtual float HorizontalConversion { get; set; } = 20f;
 	protected virtual bool ShouldBounceToSide { get; set; } = true;
 
 	protected virtual float Friction => 0.5f;
 
+	public virtual Color GetColor()
+	{
+		return CellColor;
+	}
 
-	public virtual void Step( Sandworker worker, out bool sleep )
+
+	public virtual void PreStep( Sandworker worker )
+	{
+	}
+	public virtual void Step( Sandworker worker )
+	{
+
+	}
+	public virtual void PostStep( Sandworker worker, out bool sleep )
 	{
 		sleep = false;
+	}
+
+
+	protected virtual void OnHit( Sandworker worker, Cell hitCell )
+	{
+		return;
 	}
 
 }

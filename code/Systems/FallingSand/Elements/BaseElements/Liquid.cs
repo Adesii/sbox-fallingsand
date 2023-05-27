@@ -3,7 +3,8 @@ namespace Sand.Systems.FallingSand.Elements;
 public class Liquid : Cell
 {
 	public virtual float DisperseRate => 5f;
-	public override void Step( Sandworker worker, out bool sleep )
+	public override int Density => 50;
+	public override void Step( Sandworker worker )
 	{
 		Vector2 gravity = Vector2.Down;// GetGravityAtPosition( worker, this );
 									   //Right rotated from gravity
@@ -11,7 +12,7 @@ public class Liquid : Cell
 		//Left rotated from gravity
 		Vector2 left = -right;
 
-		if ( !MoveDown( worker ) )
+		if ( !MoveLinear( worker ) )
 		{
 			if ( !MoveDirection( worker, left + gravity, right + gravity, 1f, 1f ) )
 			{
@@ -22,13 +23,14 @@ public class Liquid : Cell
 				Velocity.x = Velocity.x.Clamp( -DisperseRate, DisperseRate );
 			}
 		}
-
+	}
+	public override void PostStep( Sandworker worker, out bool sleep )
+	{
 		FinalizeMove( worker, this, Velocity );
 
 		sleep = Velocity.Length.AlmostEqual( 0 );
 		if ( !sleep )
 			SandWorld.Instance.KeepAlive( Position );
-
 	}
 }
 

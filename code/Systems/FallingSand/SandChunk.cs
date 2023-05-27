@@ -105,16 +105,16 @@ public class SandChunk
 	}
 
 
-	public void SetCell( Vector2Int pos, ref Cell cell, bool wake = false )
+	public void SetCell( Vector2Int pos, Cell cell, bool wake = false )
 	{
 		if ( !InBounds( pos ) )
 			return;
 		int index = GetIndex( pos );
-		SetCell( index, pos, ref cell, wake );
+		SetCell( index, pos, cell, wake );
 		//KeepAlive( pos );
 	}
 
-	void SetCell( int index, Vector2Int Position, ref Cell cell, bool wake = false )
+	void SetCell( int index, Vector2Int Position, Cell cell, bool wake = false )
 	{
 		if ( cell is EmptyCell || cell == null )
 		{
@@ -125,7 +125,7 @@ public class SandChunk
 			cell.Position = Position;
 			cells[index] = cell;
 		}
-		DrawPixel( index, cell == null ? Color.Transparent : cell.color );
+		//DrawPixel( index, cell == null ? Color.Transparent : cell.CellColor );
 	}
 
 	public void MoveCell( SandChunk src, Vector2Int From, Vector2Int To, bool Swap = false )
@@ -178,11 +178,10 @@ public class SandChunk
 		pixels ??= new Color32[Size.x * Size.y];
 		Texture ??= Texture.Create( Size.x, Size.y ).WithDynamicUsage().Finish();
 
-		/* for ( int i = 0; i < Size.x * Size.y; i++ )
+		for ( int i = 0; i < Size.x * Size.y; i++ )
 		{
-			var cell = GetCell( i );
-			pixels[i] = cell.color;
-		} */
+			pixels[i] = GetCell( i )?.GetColor() ?? Color.Transparent;
+		}
 		Texture.Update( pixels, 0, 0, Size.x, Size.y );
 	}
 }

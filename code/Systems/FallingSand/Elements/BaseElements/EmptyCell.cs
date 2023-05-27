@@ -5,7 +5,7 @@ public class EmptyCell : Cell
 {
 	public EmptyCell()
 	{
-		color = Color.Transparent;
+		CellColor = Color.Transparent;
 		Density = 0;
 	}
 }
