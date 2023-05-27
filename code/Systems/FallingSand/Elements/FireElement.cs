@@ -23,9 +23,6 @@ public class FireElement : Gas
 	public override void PostStep( Sandworker worker, out bool sleep )
 	{
 		FinalizeMove( worker, this, Velocity, out Vector2Int NewPos );
-
-
-
 		if ( timeSinceIgnite > 1f )
 		{
 			var smoke = new SmokeElement

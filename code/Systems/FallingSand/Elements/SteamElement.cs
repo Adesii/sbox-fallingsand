@@ -24,6 +24,10 @@ public class Steam : Gas
 			worker.SetCell( Position, new Water() );
 			sleep = true;
 		}
+		else
+		{
+			sleep = false;
+		}
 	}
 }
 
