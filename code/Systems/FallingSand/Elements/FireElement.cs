@@ -23,8 +23,32 @@ public class FireElement : Gas
 	public override void PostStep( Sandworker worker, out bool sleep )
 	{
 		FinalizeMove( worker, this, Velocity, out Vector2Int NewPos );
+
+
+
+		if ( timeSinceIgnite > 1f )
+		{
+			var smoke = new SmokeElement
+			{
+				Velocity = Velocity + Vector2.Up * 10f
+			};
+			worker.SetCell( Position, smoke, true );
+		}
+		else
+		{
+			worker.KeepAlive( Position );
+		}
+		sleep = false;
+	}
+
+	public override void OnHit( Sandworker worker, Cell hitCell )
+	{
 		if ( lastIgnite > 0.05f )
 		{
+			if ( hitCell is IFlamable flamable )
+			{
+				flamable.Ignite( worker, hitCell, this );
+			}
 			if ( worker.GetCell( Position + Vector2Int.Left ) is IFlamable leftcell )
 			{
 				leftcell.Ignite( worker, (Cell)leftcell, this );
@@ -41,23 +65,9 @@ public class FireElement : Gas
 			{
 				upcell.Ignite( worker, (Cell)upcell, this );
 			}
+
 			lastIgnite = 0f;
 		}
-
-
-		if ( timeSinceIgnite > 1f )
-		{
-			var smoke = new SmokeElement
-			{
-				Velocity = Velocity + Vector2.Up * 10f
-			};
-			worker.SetCell( Position, smoke, true );
-		}
-		else
-		{
-			worker.KeepAlive( Position );
-		}
-		sleep = false;
 	}
 
 
