@@ -4,17 +4,18 @@ namespace Sand.Systems.FallingSand;
 
 public partial class Cell
 {
-	protected static bool FinalizeMove( Sandworker worker, Cell cell, Vector2Int NewPos, Vector2 NewVel )
+	protected static bool FinalizeMove( Sandworker worker, Cell cell, Vector2 NewVel )
 	{
-		if ( NewVel.Length <= 2f + float.Epsilon )
+		if ( NewVel.Length <= 1f + float.Epsilon )
 		{
 			cell.Velocity = NewVel;
 			return true;
 		}
-		var (pos, vel, moved, HitSomething) = CheckPosVelocity( worker, NewPos, NewVel );
+		var (pos, vel, moved, HitSomething) = CheckPosVelocity( worker, cell, NewVel );
 		if ( moved )
 		{
-			worker.MoveCell( NewPos, pos );
+			worker.MoveCell( cell.Position, pos, true );
+			//Log.Info( $"Moved: {moved} HitSomething: {HitSomething} NewVel: {NewVel} Vel: {vel} Pos: {cell.Position} NewPos: {pos}" );
 			cell.Velocity = vel;
 			return false;
 		}
@@ -33,36 +34,28 @@ public partial class Cell
 		return !moved;
 	}
 
-	protected static (Vector2Int pos, Vector2 vel, bool moved, bool HitSomething) CheckPosVelocity( Sandworker worker, Vector2Int newPos, Vector2 newVel )
+	protected static (Vector2Int pos, Vector2 vel, bool moved, bool HitSomething) CheckPosVelocity( Sandworker worker, Cell cell, Vector2 newVel )
 	{
 		if ( newVel.Length < 0.8f )
 		{
-			return (newPos, newVel, false, false);
+			return (cell.Position, newVel, false, false);
 		}
-		Vector2Int currentPos = newPos;
+		Vector2Int currentPos = cell.Position;
 		Vector2 vel = newVel;
 		bool hitsomething = false;
-		SandUtils.PointToPointFunction( newPos, newPos + newVel, ( pos ) =>
+		SandUtils.PointToPointFunction( cell.Position, cell.Position + newVel, ( pos ) =>
 		{
 			if ( hitsomething ) return;
-			if ( worker.IsEmpty( pos ) && !hitsomething )
+			if ( SandUtils.CanSwap( worker, cell, pos ) && !hitsomething )
 			{
 				currentPos = pos;
+				//Log.Info( $"CanSwap: {pos}" );
 			}
 			else
 			{
 				hitsomething = true;
 			}
 		} );
-		return (currentPos, newVel, newPos != currentPos, hitsomething);
-	}
-
-	public static void QuickSwap( Sandworker worker, Vector2Int pos, Vector2Int pos2, Cell a, Cell b )
-	{
-		worker.SetCell( pos, ref b, true );
-		worker.SetCell( pos2, ref a, true );
-
-		worker.PingChunk( pos );
-		worker.PingChunk( pos2 );
+		return (currentPos, newVel, cell.Position != currentPos, hitsomething);
 	}
 }

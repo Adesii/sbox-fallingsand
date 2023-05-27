@@ -9,13 +9,13 @@ public class MovableSolid : Cell
 			//Velocity *= 0.9f;
 			if ( !MoveDirection( worker, Vector2Int.Left + Vector2Int.Down, Vector2Int.Right + Vector2Int.Down, 1f, 1f ) )
 			{
-				Velocity *= 0.2f;
+				Velocity *= Friction;
 			}
 		}
 
-		FinalizeMove( worker, this, Position, Velocity );
+		FinalizeMove( worker, this, Velocity );
 
-		Velocity *= 0.9f;
+		//Velocity *= 0.9f;
 
 		//if ( !sleep )
 		//	return;

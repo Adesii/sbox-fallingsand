@@ -2,6 +2,7 @@ namespace Sand.Systems.FallingSand.Elements;
 
 public class Liquid : Cell
 {
+	public virtual float DisperseRate => 5f;
 	public override void Step( Sandworker worker, out bool sleep )
 	{
 		if ( !MoveDown( worker ) )
@@ -10,14 +11,14 @@ public class Liquid : Cell
 			if ( !MoveDirection( worker, Vector2Int.Left + Vector2Int.Down, Vector2Int.Right + Vector2Int.Down, 1f, 1f ) )
 			{
 				//Velocity *= 0.3f;
-				Velocity *= 0.5f;
-				if ( !MoveDirection( worker, Vector2Int.Left, Vector2Int.Right, 5f, 5f ) )
+				if ( !MoveDirection( worker, Vector2Int.Left, Vector2Int.Right, DisperseRate, DisperseRate ) )
 				{
+					Velocity *= Friction;
 				}
 			}
 		}
 
-		FinalizeMove( worker, this, Position, Velocity );
+		FinalizeMove( worker, this, Velocity );
 
 		//Velocity *= 0.9f;
 

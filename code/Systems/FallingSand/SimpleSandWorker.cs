@@ -29,15 +29,15 @@ public class SimpleSandWorker : Sandworker
 	{
 		if ( !wchunk.TryGetTarget( out var chunk ) ) return;
 		//Remove moves that have their destinations filled
-		for ( int i = 0; i < chunk.Changes.Count; i++ )
+		/* for ( int i = 0; i < chunk.Changes.Count; i++ )
 		{
 			var moveinfo = chunk.Changes[i];
-			if ( (!IsEmpty( moveinfo.To ) || moveinfo.Source.IsEmpty( moveinfo.From )) )
+			if ( (!IsEmpty( moveinfo.To ) || moveinfo.Source.IsEmpty( moveinfo.From )) && !moveinfo.Swap )
 			{
 				chunk.Changes.RemoveAt( i );
 				i--;
 			}
-		}
+		} */
 
 		//sort by destination
 		chunk.Changes.Sort( ( a, b ) => (int)a.To.Distance( b.To ) );
@@ -67,6 +67,8 @@ public class SimpleSandWorker : Sandworker
 				//CommitedMoveCell( chunk.GetIndex( dst ), sourcchunk.GetIndex( src ), ref idk, true );
 				SetCell( dst, ref idk, true );
 				sourcchunk.SetCell( src, ref old, true );
+				//Log.Info( $"Moved {src} to {dst}" );
+
 				/* if ( dst != src )
 				{
 					chunk.KeepAlive( dst );

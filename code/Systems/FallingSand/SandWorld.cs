@@ -122,7 +122,7 @@ public class SandWorld
 
 	public Cell GetCell( Vector2Int pos )
 	{
-		return GetChunk( pos )?.GetCell( pos ) ?? new Cell();
+		return GetChunk( pos )?.GetCell( pos ) ?? null;
 	}
 
 	public void SetCell( Vector2Int pos, ref Cell cell, bool wake = false )
@@ -368,6 +368,7 @@ public class SandWorld
 
 		updating = false;
 		LastUpdate = 0;
+
 	}
 
 	public Vector2 ToLocal( Vector2 newpos )

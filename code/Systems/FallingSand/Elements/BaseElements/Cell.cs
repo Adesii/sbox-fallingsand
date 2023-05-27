@@ -10,6 +10,8 @@ public partial class Cell
 	public Vector2 Velocity;
 	public int Density;
 
+	public virtual float Friction => 0.5f;
+
 
 	public virtual void Step( Sandworker worker, out bool sleep )
 	{

@@ -51,9 +51,28 @@ public static class SandUtils
 		}
 	}
 
-	internal static bool IsAir( Cell leftcell )
+	public static bool CanSwap( Sandworker worker, Cell a, Vector2Int swappos )
 	{
-		return leftcell == null || leftcell is EmptyCell;
+		Cell b = worker.GetCell( swappos );
+		if ( b == null )
+		{
+			return false;
+		}
+		if ( b.IsAir() )
+		{
+			return true;
+		}
+		if ( a.GetType() == b.GetType() )
+		{
+			return false;
+		}
+		return a.Density < b.Density;
+
+	}
+
+	internal static bool IsAir( this Cell leftcell )
+	{
+		return leftcell is EmptyCell;
 	}
 }
 

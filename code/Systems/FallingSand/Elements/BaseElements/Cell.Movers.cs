@@ -7,20 +7,20 @@ public partial class Cell
 	protected bool MoveDown( Sandworker worker )
 	{
 		//using var _b = Profile.Scope( "MoveDown" );
-		var other = worker.GetCell( Position + Vector2Int.Down );
+		//var other = worker.GetCell( Position + Vector2Int.Down );
 
-		bool boyouend = (other?.Density ?? 0) > Density;
-		if ( boyouend && !SandUtils.IsAir( other ) )
-		{
-			QuickSwap( worker, Position, Position + Vector2Int.Down, this, other );
-			return false;
-		}
-		if ( !SandUtils.IsAir( other ) )
+		//bool boyouend = (other?.Density ?? 0) > Density;
+		//if ( boyouend && !SandUtils.IsAir( other ) )
+		//{
+		//	QuickSwap( worker, Position, Position + Vector2Int.Down, this, other );
+		//	return false;
+		//}
+		if ( !SandUtils.CanSwap( worker, this, Position + Vector2Int.Down ) )
 		{
 			float absy = Math.Abs( Velocity.y );
 			if ( absy > 1 )
 			{
-				Velocity.x += Velocity.x == 0 ? ((absy / 6f) * Game.Random.Int( -1, 1 )) : 0;
+				Velocity.x += Velocity.x == 0 ? ((absy / 10f) * Game.Random.Int( -1, 1 )) : 0;
 				//Log.Info( Velocity );
 			}
 			else
@@ -64,24 +64,24 @@ public partial class Cell
 
 		if ( left )
 		{
-			bool boyouend = (leftcell?.Density ?? 0) > Density;
-			if ( boyouend )
-			{
-				QuickSwap( worker, Position, Position + dir1, this, leftcell );
-				//leftcell.Velocity = ((Vector2)(dir1 * Vel1)).Perpendicular;
-				return true;
-			}
+			//bool boyouend = (leftcell?.Density ?? 0) > Density;
+			//if ( boyouend )
+			//{
+			//	QuickSwap( worker, Position, Position + dir1 * Vel1, this, leftcell );
+			//	//leftcell.Velocity = ((Vector2)(dir1 * Vel1)).Perpendicular;
+			//	return true;
+			//}
 			Velocity += (Vector2)(dir1 * Vel1);
 		}
 		if ( right )
 		{
-			bool boyouend = (rightcell?.Density ?? 0) > Density;
-			if ( boyouend )
-			{
-				QuickSwap( worker, Position, Position + dir2, this, rightcell );
-				//rightcell.Velocity = ((Vector2)(dir2 * Vel2)).Perpendicular;
-				return true;
-			}
+			//bool boyouend = (rightcell?.Density ?? 0) > Density;
+			//if ( boyouend )
+			//{
+			//	QuickSwap( worker, Position, Position + dir2 * Vel2, this, rightcell );
+			//	//rightcell.Velocity = ((Vector2)(dir2 * Vel2)).Perpendicular;
+			//	return true;
+			//}
 			Velocity += (Vector2)(dir2 * Vel2);
 		}
 		return (left || right);
