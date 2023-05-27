@@ -28,6 +28,8 @@ public struct Vector2Int : IEquatable<Vector2Int>
 
 	public static readonly Vector2Int Right = new Vector2Int( -1f, 0 );
 
+	public Vector2Int Perpendicular => new Vector2Int( y, -x );
+
 	public int x
 	{
 		readonly get
@@ -171,6 +173,10 @@ public struct Vector2Int : IEquatable<Vector2Int>
 	public static Vector2Int operator *( Vector2Int c1, Vector2Int c2 )
 	{
 		return c1.vec * c2.vec;
+	}
+	public static Vector2 operator *( Vector2 c1, Vector2Int c2 )
+	{
+		return c1 * new Vector2( c2.x, c2.y );
 	}
 	public static Vector2Int operator %( Vector2Int c1, int c2 )
 	{

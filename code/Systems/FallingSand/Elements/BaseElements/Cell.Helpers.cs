@@ -50,4 +50,40 @@ public partial class Cell
 		} );
 		return (currentPos, newVel, cell.Position != currentPos, hitsomething);
 	}
+
+	protected static Vector2 GetGravityAtPosition( Sandworker worker, Cell cell )
+	{
+		// do a simple gravity towards 0,0 for now
+		Vector2 gravityPosition = Vector2.Zero;
+		Vector2 pos = cell.Position.vec;
+		Vector2 gravity = gravityPosition - pos;
+		gravity = gravity.Normal;
+		return gravity;
+	}
+
+	protected static Vector2Int GetGravityCheckDir( Vector2 gravity )
+	{
+		Vector2Int dir = Vector2Int.Zero;
+		// snap the gravity to a direction in 8 directions
+		if ( gravity.x >= 0.5f )
+		{
+			dir.x = 1;
+		}
+		else if ( gravity.x < -0.5f )
+		{
+			dir.x = -1;
+		}
+		if ( gravity.y >= 0.5f )
+		{
+			dir.y = 1;
+		}
+		else if ( gravity.y < -0.5f )
+		{
+			dir.y = -1;
+		}
+
+
+
+		return dir;
+	}
 }
