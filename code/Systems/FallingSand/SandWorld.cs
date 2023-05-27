@@ -290,12 +290,15 @@ public class SandWorld
 				Instance.KeepAlive( pos );
 				return;
 			}
-			for ( int i = -size; i < size; i++ )
+			int radius = size;
+			for ( int x = -radius; x <= radius; x++ )
 			{
-				for ( int j = -size; j < size; j++ )
+				for ( int y = -radius; y <= radius; y++ )
 				{
-					if ( Instance.InBounds( pos + new Vector2Int( i, j ) ) )
-						SetCellClient( pos.x + i, pos.y + j, type );
+					if ( x * x + y * y <= radius * radius && Instance.InBounds( pos + new Vector2Int( x, y ) ) )
+					{
+						SetCellClient( pos.x + x, pos.y + y, type );
+					}
 				}
 			}
 		} );
