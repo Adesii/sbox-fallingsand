@@ -19,6 +19,7 @@ public class WorldDisplay : Panel
 		var bottom = worldRect.Bottom;
 		worldRect.Top = -bottom;
 		worldRect.Bottom = -top; */
+		worldRect.Bottom += 1;
 
 		worldRect.Position += SandWorld.WorldPosition;
 		worldRect *= ScaleToScreen / ((float)SandWorld.ZoomLevel / 10f);

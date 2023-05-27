@@ -5,8 +5,11 @@ namespace Sand;
 
 public partial class Player : AnimatedEntity
 {
-	public static Type LeftClick = typeof( SandElement );
-	public static Type RightClick = typeof( WaterElement );
+	public static Type LeftClick = typeof( Systems.FallingSand.Sand );
+	public static Type RightClick = typeof( Systems.FallingSand.Water );
+
+	[ConVar.Client]
+	public static int BrushSize { get; set; } = 1;
 
 
 	[ConCmd.Client]
@@ -56,6 +59,9 @@ public partial class Player : AnimatedEntity
 	bool dragleft = false;
 	bool dragright = false;
 	bool dragzoom = false;
+
+	TimeSince LastLeftDraw = 0;
+	TimeSince LastRightDraw = 0;
 	public override void BuildInput()
 	{
 		base.BuildInput();
@@ -64,13 +70,18 @@ public partial class Player : AnimatedEntity
 		{
 			OldPos = new Vector2Int( Hud.CorrectMousePosition );
 			dragleft = true;
+			LastLeftDraw = 0;
 		}
 
 		if ( Input.Down( "LeftClick" ) )
 		{
-			var newpos = new Vector2Int( Hud.CorrectMousePosition );
-			SandWorld.BrushBetween( OldPos, newpos, 10, LeftClick );
-			OldPos = newpos;
+			if ( LastLeftDraw > 0.05f )
+			{
+				var newpos = new Vector2Int( Hud.CorrectMousePosition );
+				SandWorld.BrushBetween( OldPos, newpos, BrushSize, LeftClick );
+				OldPos = newpos;
+				LastLeftDraw = 0;
+			}
 		}
 		else if ( dragleft )
 		{
@@ -81,13 +92,18 @@ public partial class Player : AnimatedEntity
 		{
 			OldPos = new Vector2Int( Hud.CorrectMousePosition );
 			dragright = true;
+			LastRightDraw = 0;
 		}
 
 		if ( Input.Down( "RightClick" ) )
 		{
-			var newpos = new Vector2Int( Hud.CorrectMousePosition );
-			SandWorld.BrushBetween( OldPos, newpos, 10, RightClick );
-			OldPos = newpos;
+			if ( LastRightDraw > 0.05f )
+			{
+				var newpos = new Vector2Int( Hud.CorrectMousePosition );
+				SandWorld.BrushBetween( OldPos, newpos, BrushSize, RightClick );
+				OldPos = newpos;
+				LastRightDraw = 0;
+			}
 		}
 		else if ( dragright )
 		{

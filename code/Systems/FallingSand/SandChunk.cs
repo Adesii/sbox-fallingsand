@@ -49,7 +49,7 @@ public class SandChunk
 
 		working_minY = Size.y;
 		working_maxY = -1;
-		sleeping = true;
+		ShouldWakeup = true;
 	}
 
 
@@ -158,6 +158,10 @@ public class SandChunk
 			{
 				SleepTime = 0;
 			}
+			else
+			{
+				ShouldWakeup = true;
+			}
 			_sleep = value;
 		}
 		get
@@ -180,27 +184,6 @@ public class SandChunk
 			pixels[i] = cell.color;
 		} */
 		Texture.Update( pixels, 0, 0, Size.x, Size.y );
-	}
-
-	internal void SetVelocityCell( Vector2Int pos, Vector2Int vel )
-	{
-		var cell = GetCell( pos );
-		if ( cell is not EmptyCell )
-		{
-			cell.Velocity = vel;
-			SetCell( pos, ref cell );
-		}
-	}
-
-	internal void SetCellVelocity( Vector2Int pos, Vector2Int vel )
-	{
-		var cell = GetCell( pos );
-		if ( cell is not EmptyCell )
-		{
-			cell.Velocity = vel;
-			SetCell( pos, ref cell );
-		}
-
 	}
 }
 

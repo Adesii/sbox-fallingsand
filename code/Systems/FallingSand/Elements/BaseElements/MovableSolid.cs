@@ -4,10 +4,27 @@ public class MovableSolid : Cell
 {
 	public override void Step( Sandworker worker, out bool sleep )
 	{
-		sleep = MoveDown( worker );
+		if ( !MoveDown( worker ) )
+		{
+			//Velocity *= 0.9f;
+			if ( !MoveDirection( worker, Vector2Int.Left + Vector2Int.Down, Vector2Int.Right + Vector2Int.Down, 1f, 1f ) )
+			{
+				Velocity *= 0.2f;
+			}
+		}
+
+		FinalizeMove( worker, this, Position, Velocity );
+
+		Velocity *= 0.9f;
+
+		//if ( !sleep )
+		//	return;
+
+
+		sleep = Velocity.Length.AlmostEqual( 0 );
 		if ( !sleep )
-			return;
-		sleep = MoveDirection( worker, Vector2Int.Left + Vector2Int.Down, Vector2Int.Right + Vector2Int.Down, 2, 2 );
+			SandWorld.Instance.KeepAlive( Position );
+		//Log.Info( $"Velocity: {Velocity} Sleep: {sleep} lenght: {Velocity.Length} almost equal: {Velocity.Length.AlmostEqual( 0 )}" );
 	}
 }
 

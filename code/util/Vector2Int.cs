@@ -143,6 +143,10 @@ public struct Vector2Int : IEquatable<Vector2Int>
 	{
 		return new Vector3( c1.x + c2.vec.X, c1.y + c2.vec.Y, c1.z );
 	}
+	public static Vector2Int operator +( Vector2Int c1, Vector2 c2 )
+	{
+		return new Vector2Int( c1.vec.X + c2.x, c1.vec.Y + c2.y );
+	}
 
 	public static Vector2Int operator -( Vector2Int c1, Vector2Int c2 )
 	{

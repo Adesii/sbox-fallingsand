@@ -16,6 +16,7 @@ public class SimpleSandWorker : Sandworker
 		if ( !wchunk.TryGetTarget( out var chunk ) )
 		{
 			sleep = true;
+			Log.Info( "No chunk" );
 			return;
 		}
 		chunk.GetCell( Position ).Step( this, out sleep );
@@ -31,7 +32,7 @@ public class SimpleSandWorker : Sandworker
 		for ( int i = 0; i < chunk.Changes.Count; i++ )
 		{
 			var moveinfo = chunk.Changes[i];
-			if ( !IsEmpty( moveinfo.To ) || moveinfo.Source.IsEmpty( moveinfo.From ) )
+			if ( (!IsEmpty( moveinfo.To ) || moveinfo.Source.IsEmpty( moveinfo.From )) )
 			{
 				chunk.Changes.RemoveAt( i );
 				i--;
@@ -77,7 +78,7 @@ public class SimpleSandWorker : Sandworker
 			}
 		}
 
-		//Changes.Clear();
+		chunk.Changes.Clear();
 
 
 

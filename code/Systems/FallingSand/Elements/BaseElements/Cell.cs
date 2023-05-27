@@ -7,7 +7,7 @@ public partial class Cell
 	public Vector2Int Position;
 	public static Cell Empty = new EmptyCell();
 	public Color32 color;
-	public Vector2Int Velocity;
+	public Vector2 Velocity;
 	public int Density;
 
 

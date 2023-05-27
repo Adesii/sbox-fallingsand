@@ -231,17 +231,15 @@ public class SandWorld
 			Log.Warning( $"Invalid cell {x} {y}  chunklocal = " );
 			return;
 		}
-		Cell cell = null;
 
 		if ( Instance.GetCell( new Vector2Int( x, y ) ).GetType() == type )
 		{
 			//Instance.KeepAlive( new Vector2Int( x, y ) );
 			return;
 		}
-		cell = TypeLibrary.Create<Cell>( type );
-
-
+		var cell = TypeLibrary.Create<Cell>( type );
 		Instance.SetCell( new Vector2Int( x, y ), ref cell, true );
+
 		//Log.Info( $"Set cell {x} {y} to {type}" );
 	}
 
@@ -270,8 +268,12 @@ public class SandWorld
 
 		SandUtils.PointToPointFunction( correctedold, correctedfinal, ( pos ) =>
 		{
-
-
+			if ( size == 1 )
+			{
+				SetCellClient( pos.x, pos.y, type );
+				Instance.KeepAlive( pos );
+				return;
+			}
 			for ( int i = -size; i < size; i++ )
 			{
 				for ( int j = -size; j < size; j++ )
@@ -328,9 +330,8 @@ public class SandWorld
 		{
 			if ( !chunk.Value.cells.IsEmpty && (!chunk.Value.IsCurrentlySleeping || chunk.Value.ShouldWakeup) )
 			{
-				if ( chunk.Value.ShouldWakeup )
-					chunk.Value.ShouldWakeup = false;
-				chunk.Value.sleeping = true;
+				//if ( chunk.Value.ShouldWakeup )
+				//	chunk.Value.ShouldWakeup = false;
 				tasks.Add( GameTask.RunInThreadAsync( () =>
 							{
 								new SimpleSandWorker( this, chunk.Value ).UpdateChunk();
@@ -369,19 +370,8 @@ public class SandWorld
 		LastUpdate = 0;
 	}
 
-	internal void SetVelocityCell( Vector2Int pos, Vector2Int vel )
-	{
-		GetChunk( pos ).SetVelocityCell( pos, vel );
-	}
-
 	public Vector2 ToLocal( Vector2 newpos )
 	{
 		return newpos - new Vector2( ChunkWidth, ChunkHeight );
-	}
-
-	internal void SetCellVelocity( Vector2Int pos, Vector2Int vel )
-	{
-		if ( InBounds( pos ) )
-			GetChunk( pos ).SetCellVelocity( pos, vel );
 	}
 }
