@@ -22,6 +22,26 @@ public partial class Cell
 		return CellColor;
 	}
 
+	public void LogicUpdate( Sandworker worker, out bool sleep )
+	{
+		PreStep( worker );
+		Step( worker );
+		bool heat = false;
+		//if ( LastHeatTransfer > 0.1f )
+		{
+			HeatStep( worker, out heat );
+
+			LastHeatTransfer = 0f;
+		}
+		PostStep( worker, out sleep );
+
+		/* if ( heat && sleep )
+		{
+			sleep = false;
+		} */
+
+	}
+
 
 	public virtual void PreStep( Sandworker worker )
 	{
@@ -36,7 +56,8 @@ public partial class Cell
 	}
 
 
-	protected virtual void OnHit( Sandworker worker, Cell hitCell )
+
+	public virtual void OnHit( Sandworker worker, Cell hitCell )
 	{
 		return;
 	}

@@ -89,5 +89,70 @@ public static class SandUtils
 	{
 		return leftcell is EmptyCell;
 	}
+
+	public static bool IsAirOrNull( this Cell leftcell )
+	{
+		return leftcell == null || leftcell is EmptyCell;
+	}
+
+	public static Cell[] GetNeighbours( this Cell Origin, Sandworker worker )
+	{
+		Vector2Int[] Directions = new Vector2Int[] { new( 0, 1 ), new( 1, 1 ), new( 1, 0 ), new( 1, -1 ), new( 0, -1 ), new( -1, -1 ), new( -1, 0 ), new( -1, 1 ) };
+		List<Cell> cells = new List<Cell>( 8 );
+		foreach ( var dir in Directions )
+		{
+			var cell = worker.GetCell( Origin.Position + dir );
+			if ( cell != null )
+			{
+				cells.Add( cell );
+			}
+		}
+
+		return cells.ToArray();
+	}
+
+	public static void ApplyToNeightbours( this Cell Origin, Sandworker worker, int Distance, Action<Cell, int> toapply )
+	{
+		Queue<Cell> queue = new Queue<Cell>();
+		HashSet<Cell> visited = new HashSet<Cell>();
+
+		queue.Enqueue( Origin );
+		visited.Add( Origin );
+
+		int distance = 0;
+
+		while ( queue.Count > 0 && distance < Distance )
+		{
+			int levelSize = queue.Count;
+
+			for ( int i = 0; i < levelSize; i++ )
+			{
+				Cell current = queue.Dequeue();
+
+				if ( current != Origin )
+				{
+					toapply( current, distance );
+					//calculate distance from source and apply square root to get a falloff
+					/* float heatPercent = 1 - ((float)distance / (float)Distance);
+					float heatToAdd = Heat * heatPercent;
+					current.Heat += heatToAdd;
+					current.OnHeated( worker );
+					Heat -= heatToAdd;
+					OnHeated( worker ); */
+				}
+
+				foreach ( Cell neighbor in current.GetNeighbours( worker ) )
+				{
+					if ( !visited.Contains( neighbor ) )
+					{
+						queue.Enqueue( neighbor );
+						visited.Add( neighbor );
+					}
+				}
+			}
+
+			distance++;
+		}
+	}
 }
 

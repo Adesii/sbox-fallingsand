@@ -73,7 +73,7 @@ public class SandWorld
 	[ConCmd.Client]
 	public static void CreateNewWorld( int left, int right, int top, int down )
 	{
-		Limit = new( -Math.Abs( left ), Math.Abs( right ), Math.Abs( top ), -Math.Abs( down ) );
+		Limit = new( left, right, top, down );
 		Instance = new SandWorld();
 		ZoomToFitMap();
 	}
@@ -88,10 +88,10 @@ public class SandWorld
 		//left can be negative, right can be positive, up can be positive, down can be negative
 		public WorldLimit( int left, int right, int up, int down )
 		{
-			LeftLimit = left;
-			RightLimit = right;
-			UpLimit = up;
-			DownLimit = down;
+			LeftLimit = -Math.Abs( left );
+			RightLimit = Math.Abs( right );
+			UpLimit = Math.Abs( up );
+			DownLimit = -Math.Abs( down );
 		}
 
 		public bool InBounds( Vector2Int pos )
@@ -109,7 +109,7 @@ public class SandWorld
 		}
 	}
 
-	public static WorldLimit Limit = new( 0, 2, 2, -2 );
+	public static WorldLimit Limit = new( 8, 8, 8, 8 );
 
 	public Texture DrawTexture;
 	public Texture CellTexture;
@@ -317,26 +317,24 @@ public class SandWorld
 		instance.chunks.Clear();
 	}
 
-	[GameEvent.Client.Frame]
-	public void Update()
+	[GameEvent.Tick.Client]
+	public async void Update()
 	{
-		//if ( LastUpdate < 0.1f ) return;
-		//SetCellClient( 10, 100, 2 );
-		//SetCellBrush( ChunkWidth - 1, ChunkHeight - 1, 10, 1 );
-		//SetCellBrush( -100, ChunkHeight - 1, 10, 1 );
-
-
-		//SetCellClient( 0, ChunkHeight - 1, 1 );
-
-		RealUpdate();
-
-
-
-
+		await RealUpdate();
 	}
 
+	[GameEvent.Client.Frame]
+	public void DrawChunks()
+	{
+		foreach ( var item in chunks )
+		{
+			item.Value.Draw();
+
+		}
+	}
+	//TimeUntil NextUpdate = 0;
 	bool updating = false;
-	async void RealUpdate()
+	async Task RealUpdate()
 	{
 		if ( updating ) return;
 		//using var _a = Profile.Scope( "Sandworld::Update" );
@@ -349,6 +347,12 @@ public class SandWorld
 
 
 		List<Task> tasks = new();
+
+		/* while ( !NextUpdate )
+		{
+			await GameTask.NextPhysicsFrame();
+		}
+		NextUpdate = 0.1f; */
 
 		//Update Cells
 		int totalamountofcells = 0;
@@ -371,6 +375,8 @@ public class SandWorld
 		tasks.Clear();
 
 
+
+
 		foreach ( var chunk in chunks.Values )
 		{
 			tasks.Add( GameTask.RunInThreadAsync( () =>
@@ -382,9 +388,12 @@ public class SandWorld
 		tasks.Clear();
 
 
+
+
 		foreach ( var chunk in chunks.Values )
 		{
 			chunk.UpdateRect();
+
 		}
 		RemoveEmptyChunks();
 
