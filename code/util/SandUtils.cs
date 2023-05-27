@@ -20,13 +20,24 @@ public static class SandUtils
 
 		int xDiff = matrixX1 - matrixX2;
 		int yDiff = matrixY1 - matrixY2;
-		bool xDiffIsLarger = Math.Abs( xDiff ) > Math.Abs( yDiff );
+		bool xDiffIsLarger = xDiff != int.MinValue && Math.Abs( xDiff ) > Math.Abs( yDiff );
 
 		int xModifier = xDiff < 0 ? 1 : -1;
 		int yModifier = yDiff < 0 ? 1 : -1;
+		int longerSideLength = 0;
+		int shorterSideLength = 0;
+		try
+		{
+			longerSideLength = Math.Max( Math.Abs( xDiff ), Math.Abs( yDiff ) );
+			shorterSideLength = Math.Min( Math.Abs( xDiff ), Math.Abs( yDiff ) );
+		}
+		catch ( System.Exception )
+		{
 
-		int longerSideLength = Math.Max( Math.Abs( xDiff ), Math.Abs( yDiff ) );
-		int shorterSideLength = Math.Min( Math.Abs( xDiff ), Math.Abs( yDiff ) );
+			return;
+		}
+
+
 		float slope = (shorterSideLength == 0 || longerSideLength == 0) ? 0 : ((float)shorterSideLength / longerSideLength);
 
 		int shorterSideIncrease;
