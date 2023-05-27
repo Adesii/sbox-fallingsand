@@ -265,7 +265,7 @@ public class SandWorld
 		correctedold.y = ChunkHeight - old.y;
 		correctedold.y += ChunkHeight;
 
-		Vector2Int correctedfinal = final;
+		Vector2Int correctedfinal = new( Hud.CorrectMousePosition );
 		correctedfinal.y = ChunkHeight - final.y;
 		correctedfinal.y += ChunkHeight;
 
@@ -281,26 +281,33 @@ public class SandWorld
 
 		//correctedfinal *= ZoomLevel;
 		//correctedold *= ZoomLevel;
-
-		SandUtils.PointToPointFunction( correctedold, correctedfinal, ( pos ) =>
+		GameTask.RunInThreadAsync( () =>
 		{
-			if ( size == 1 )
+			SandUtils.PointToPointFunction( correctedold, correctedfinal, ( pos ) =>
 			{
-				SetCellClient( pos.x, pos.y, type );
-				Instance.KeepAlive( pos );
-				return;
-			}
-			int radius = size;
-			for ( int x = -radius; x <= radius; x++ )
-			{
-				for ( int y = -radius; y <= radius; y++ )
+				if ( size == 1 )
 				{
-					if ( x * x + y * y <= radius * radius && Instance.InBounds( pos + new Vector2Int( x, y ) ) )
-					{
-						SetCellClient( pos.x + x, pos.y + y, type );
-					}
+					SetCellClient( pos.x, pos.y, type );
+					Instance.KeepAlive( pos );
+					return;
 				}
-			}
+				int radius = size;
+
+				for ( int x = -radius; x <= radius; x++ )
+				{
+					for ( int y = -radius; y <= radius; y++ )
+					{
+						if ( x * x + y * y <= radius * radius && Instance.InBounds( pos + new Vector2Int( x, y ) ) )
+						{
+							//SetCellClient( pos.x + x, pos.y + y, type );
+							var position = new Vector2Int( pos.x + x, pos.y + y );
+							Instance.KeepAlive( position );
+							SetCellClient( position.x, position.y, type );
+						}
+					}
+
+				}
+			} );
 		} );
 	}
 
