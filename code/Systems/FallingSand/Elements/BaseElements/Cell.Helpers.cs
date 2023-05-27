@@ -15,7 +15,6 @@ public partial class Cell
 		if ( moved )
 		{
 			worker.MoveCell( cell.Position, pos, true );
-			//Log.Info( $"Moved: {moved} HitSomething: {HitSomething} NewVel: {NewVel} Vel: {vel} Pos: {cell.Position} NewPos: {pos}" );
 			cell.Velocity = vel;
 			return false;
 		}
@@ -24,13 +23,7 @@ public partial class Cell
 			cell.Velocity = 0;
 			return !moved;
 		}
-		/* if ( HitSomething )
-			cell.Velocity = 0;
-		else
-			cell.Velocity = vel; */
-		//cell.Velocity = 0;
 
-		//Log.Info( $"Moved: {moved} HitSomething: {HitSomething} NewVel: {NewVel} Vel: {vel} Pos: {pos} NewPos: {NewPos}" );
 		return !moved;
 	}
 
@@ -49,7 +42,6 @@ public partial class Cell
 			if ( SandUtils.CanSwap( worker, cell, pos ) && !hitsomething )
 			{
 				currentPos = pos;
-				//Log.Info( $"CanSwap: {pos}" );
 			}
 			else
 			{
