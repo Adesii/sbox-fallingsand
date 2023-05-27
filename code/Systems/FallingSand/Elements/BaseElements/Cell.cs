@@ -26,20 +26,7 @@ public partial class Cell
 	{
 		PreStep( worker );
 		Step( worker );
-		bool heat = false;
-		//if ( LastHeatTransfer > 0.1f )
-		{
-			HeatStep( worker, out heat );
-
-			LastHeatTransfer = 0f;
-		}
 		PostStep( worker, out sleep );
-
-		/* if ( heat && sleep )
-		{
-			sleep = false;
-		} */
-
 	}
 
 
