@@ -2,6 +2,8 @@ namespace Sand.Systems.FallingSand.Elements;
 
 public class MovableSolid : Cell
 {
+	protected bool IsFreeFalling = true;
+	public virtual float Inertia { get; set; } = 0.3f;
 	public override void Step( Sandworker worker, out bool sleep )
 	{
 		Vector2 gravity = Vector2.Down; //GetGravityAtPosition( worker, this );
@@ -12,18 +14,54 @@ public class MovableSolid : Cell
 
 		if ( !MoveDown( worker ) )
 		{
-			if ( !MoveDirection( worker, (left + gravity).Normal, (right + gravity).Normal, 1f, 1f ) )
-			//if ( !MoveDown( worker ) )
-			{
-				Velocity *= Friction;
-			}
+			if ( IsFreeFalling )
+				if ( !MoveDirection( worker, (Vector2)(Vector2Int.Down + Vector2Int.Right), (Vector2)(Vector2Int.Down + Vector2Int.Left), 1f, 1f ) )
+				//if ( !MoveDown( worker ) )
+				{
+					Velocity *= Friction;
+					IsFreeFalling = false;
+					if ( worker.GetCell( Position + left ) is MovableSolid leftcell )
+					{
+						leftcell.FreeFall( worker );
+					}
+					if ( worker.GetCell( Position + right ) is MovableSolid rightcell )
+					{
+						rightcell.FreeFall( worker );
+					}
+				}
+
+		}
+		else
+		{
+			IsFreeFalling = true;
+
 		}
 
-		FinalizeMove( worker, this, Velocity );
+		if ( !FinalizeMove( worker, this, Velocity, out Vector2Int NewPos ) )
+		{
+			IsFreeFalling = true;
+			if ( worker.GetCell( NewPos + left ) is MovableSolid leftcell )
+			{
+				leftcell.FreeFall( worker );
+			}
+			if ( worker.GetCell( NewPos + right ) is MovableSolid rightcell )
+			{
+				rightcell.FreeFall( worker );
+			}
+		}
 
 		sleep = Velocity.Length.AlmostEqual( 0 );
 		if ( !sleep )
 			SandWorld.Instance.KeepAlive( Position );
+
+	}
+
+	private void FreeFall( Sandworker worker )
+	{
+		if ( IsFreeFalling )
+			return;
+
+		IsFreeFalling = Game.Random.Float() > Inertia;
 
 	}
 }

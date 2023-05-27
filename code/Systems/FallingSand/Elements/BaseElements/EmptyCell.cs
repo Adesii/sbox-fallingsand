@@ -1,5 +1,6 @@
 namespace Sand.Systems.FallingSand;
 
+[Element]
 public class EmptyCell : Cell
 {
 	public EmptyCell()

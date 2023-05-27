@@ -15,6 +15,12 @@ public partial class ElementSelector : Panel
 
 		Elements = TypeLibrary.GetTypesWithAttribute<ElementAttribute>().Select( x => x.Type.TargetType ).ToList();
 	}
+	[Event.Hotload]
+	public void Hotload()
+	{
+		Elements = TypeLibrary.GetTypesWithAttribute<ElementAttribute>().Select( x => x.Type.TargetType ).OrderBy( x => x.Name ).ToList();
+		StateHasChanged();
+	}
 
 
 	protected override int BuildHash()

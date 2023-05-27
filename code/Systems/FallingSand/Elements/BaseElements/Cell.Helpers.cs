@@ -4,11 +4,16 @@ namespace Sand.Systems.FallingSand;
 
 public partial class Cell
 {
-	protected static bool FinalizeMove( Sandworker worker, Cell cell, Vector2 NewVel )
+	protected virtual bool FinalizeMove( Sandworker worker, Cell cell, Vector2 NewVel )
+	{
+		return FinalizeMove( worker, cell, NewVel, out _ );
+	}
+	protected virtual bool FinalizeMove( Sandworker worker, Cell cell, Vector2 NewVel, out Vector2Int newPos )
 	{
 		if ( NewVel.Length <= 1f + float.Epsilon )
 		{
 			cell.Velocity = NewVel;
+			newPos = cell.Position;
 			return true;
 		}
 		var (pos, vel, moved, HitSomething) = CheckPosVelocity( worker, cell, NewVel );
@@ -16,14 +21,17 @@ public partial class Cell
 		{
 			worker.MoveCell( cell.Position, pos, true );
 			cell.Velocity = vel;
+			newPos = pos;
 			return false;
 		}
 		else if ( HitSomething )
 		{
 			cell.Velocity = 0;
+			newPos = cell.Position;
 			return !moved;
 		}
 
+		newPos = cell.Position;
 		return !moved;
 	}
 
@@ -63,6 +71,7 @@ public partial class Cell
 
 	protected static Vector2Int GetGravityCheckDir( Vector2 gravity )
 	{
+		return Vector2Int.Down;
 		Vector2Int dir = Vector2Int.Zero;
 		// snap the gravity to a direction in 8 directions
 		if ( gravity.x >= 0.5f )
