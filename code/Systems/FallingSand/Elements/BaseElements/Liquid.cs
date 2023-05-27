@@ -13,6 +13,7 @@ public class Liquid : Cell
 				{
 					Velocity *= Friction;
 				}
+				Velocity.x = Velocity.x.Clamp( -DisperseRate, DisperseRate );
 			}
 		}
 

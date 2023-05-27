@@ -18,6 +18,14 @@ public class SandWorld
 			instance ??= new SandWorld();
 			return instance;
 		}
+		set
+		{
+			if ( instance != null )
+			{
+				Event.Unregister( instance );
+			}
+			instance = value;
+		}
 	}
 
 	SandWorld()
@@ -60,6 +68,14 @@ public class SandWorld
 		var scale = screenSize / worldSize;
 		ZoomLevel = (int)(scale.x / 10);
 		CenterAround( 0, 0 );
+	}
+
+	[ConCmd.Client]
+	public static void CreateNewWorld( int left, int right, int top, int down )
+	{
+		Limit = new( -Math.Abs( left ), Math.Abs( right ), Math.Abs( top ), -Math.Abs( down ) );
+		Instance = new SandWorld();
+		ZoomToFitMap();
 	}
 
 	public struct WorldLimit
@@ -228,7 +244,7 @@ public class SandWorld
 	{
 		if ( !Instance.InBounds( new Vector2Int( x, y ) ) )
 		{
-			Log.Warning( $"Invalid cell {x} {y}  chunklocal = " );
+			//Log.Warning( $"Invalid cell {x} {y}  chunklocal = " );
 			return;
 		}
 

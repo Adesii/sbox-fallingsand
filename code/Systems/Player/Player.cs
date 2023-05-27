@@ -9,7 +9,7 @@ public partial class Player : AnimatedEntity
 	public static Type RightClick = typeof( Systems.FallingSand.Water );
 
 	[ConVar.Client]
-	public static int BrushSize { get; set; } = 1;
+	public static int BrushSize { get; set; } = 5;
 
 
 	[ConCmd.Client]
@@ -75,7 +75,7 @@ public partial class Player : AnimatedEntity
 
 		if ( Input.Down( "LeftClick" ) )
 		{
-			if ( LastLeftDraw > 0.05f )
+			if ( LastLeftDraw > Time.Delta )
 			{
 				var newpos = new Vector2Int( Hud.CorrectMousePosition );
 				SandWorld.BrushBetween( OldPos, newpos, BrushSize, LeftClick );
@@ -97,7 +97,7 @@ public partial class Player : AnimatedEntity
 
 		if ( Input.Down( "RightClick" ) )
 		{
-			if ( LastRightDraw > 0.05f )
+			if ( LastRightDraw > Time.Delta )
 			{
 				var newpos = new Vector2Int( Hud.CorrectMousePosition );
 				SandWorld.BrushBetween( OldPos, newpos, BrushSize, RightClick );
