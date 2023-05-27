@@ -265,7 +265,7 @@ public class SandWorld
 		correctedold.y = ChunkHeight - old.y;
 		correctedold.y += ChunkHeight;
 
-		Vector2Int correctedfinal = new( Hud.CorrectMousePosition );
+		Vector2Int correctedfinal = final;
 		correctedfinal.y = ChunkHeight - final.y;
 		correctedfinal.y += ChunkHeight;
 
