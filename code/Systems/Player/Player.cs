@@ -75,7 +75,7 @@ public partial class Player : AnimatedEntity
 
 		if ( Input.Down( "LeftClick" ) )
 		{
-			if ( LastLeftDraw > Time.Delta )
+			if ( LastLeftDraw > Time.Delta * 3 )
 			{
 				var newpos = new Vector2Int( Hud.CorrectMousePosition );
 				SandWorld.BrushBetween( OldPos, newpos, BrushSize, LeftClick );
@@ -97,7 +97,7 @@ public partial class Player : AnimatedEntity
 
 		if ( Input.Down( "RightClick" ) )
 		{
-			if ( LastRightDraw > Time.Delta )
+			if ( LastRightDraw > Time.Delta * 3 )
 			{
 				var newpos = new Vector2Int( Hud.CorrectMousePosition );
 				SandWorld.BrushBetween( OldPos, newpos, BrushSize, RightClick );
