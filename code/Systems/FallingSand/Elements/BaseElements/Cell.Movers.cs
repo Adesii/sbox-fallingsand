@@ -33,6 +33,7 @@ public partial class Cell
 
 		Velocity += down * 2f;
 		Velocity = Velocity.Clamp( -MaxVelocity, MaxVelocity );
+		Velocity.x *= 0.7f;
 		return true;
 	}
 
@@ -54,7 +55,7 @@ public partial class Cell
 		{
 			Velocity += dir2 * Vel2;
 		}
-		Velocity = Velocity.Clamp( -MaxVelocity, MaxVelocity );
+		Velocity.x = Velocity.x.Clamp( -MaxVelocity, MaxVelocity );
 		return left || right;
 	}
 }

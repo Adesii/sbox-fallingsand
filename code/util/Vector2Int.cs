@@ -5,10 +5,8 @@ using Sandbox;
 
 public struct Vector2Int : IEquatable<Vector2Int>
 {
-	internal int xv;
-	internal int yv;
 
-	internal readonly System.Numerics.Vector2 vec => new( xv, yv );
+	internal readonly System.Numerics.Vector2 vec;
 
 	//
 	// Summary:
@@ -30,29 +28,9 @@ public struct Vector2Int : IEquatable<Vector2Int>
 
 	public Vector2Int Perpendicular => new Vector2Int( y, -x );
 
-	public int x
-	{
-		readonly get
-		{
-			return xv;
-		}
-		set
-		{
-			xv = value;
-		}
-	}
+	public int x;
 
-	public int y
-	{
-		readonly get
-		{
-			return yv;
-		}
-		set
-		{
-			yv = value;
-		}
-	}
+	public int y;
 
 	//
 	// Summary:
@@ -98,7 +76,6 @@ public struct Vector2Int : IEquatable<Vector2Int>
 	public Vector2Int( Vector2 v )
 		: this( new System.Numerics.Vector2( v.x, v.y ) )
 	{
-
 	}
 
 	internal static float Distance( in Vector2Int a, in Vector2Int b )
@@ -108,8 +85,9 @@ public struct Vector2Int : IEquatable<Vector2Int>
 
 	public Vector2Int( System.Numerics.Vector2 v )
 	{
-		xv = v.X.FloorToInt();
-		yv = v.Y.FloorToInt();
+		vec = v;
+		x = (int)v.X;
+		y = (int)v.Y;
 	}
 
 	public static implicit operator Vector2Int( System.Numerics.Vector2 value )

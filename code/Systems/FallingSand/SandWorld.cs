@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Sand.Systems.FallingSand.Elements;
 using Sand.UI;
 using Sand.util;
 using Sandbox.Debug;
@@ -31,8 +32,8 @@ public class SandWorld
 	SandWorld()
 	{
 		Event.Register( this );
-		ChunkWidth = 16;
-		ChunkHeight = 16;
+		ChunkWidth = 64;
+		ChunkHeight = 64;
 	}
 
 	[ConCmd.Client]
@@ -194,7 +195,7 @@ public class SandWorld
 
 	Vector2Int GetLocalLocationPrecise( Vector2Int pos )
 	{
-		return new( ((float)pos.x / ChunkWidth).FloorToInt(), ((float)pos.y / ChunkHeight).FloorToInt() );
+		return new( ((float)pos.x / ChunkWidth).Floor(), ((float)pos.y / ChunkHeight).Floor() );
 
 	}
 
@@ -277,6 +278,11 @@ public class SandWorld
 		Instance.KeepAlive( correctedold );
 		Instance.KeepAlive( correctedfinal );
 
+		if ( type == typeof( Spawner ) )
+		{
+			size = 1;
+		}
+
 
 
 		//correctedfinal *= ZoomLevel;
@@ -301,7 +307,6 @@ public class SandWorld
 						{
 							//SetCellClient( pos.x + x, pos.y + y, type );
 							var position = new Vector2Int( pos.x + x, pos.y + y );
-							Instance.KeepAlive( position );
 							SetCellClient( position.x, position.y, type );
 						}
 					}
@@ -318,9 +323,9 @@ public class SandWorld
 	}
 
 	[GameEvent.Tick.Client]
-	public async void Update()
+	public void Update()
 	{
-		await RealUpdate();
+		RealUpdate();
 	}
 
 	[GameEvent.Client.Frame]
@@ -334,7 +339,7 @@ public class SandWorld
 	}
 	//TimeUntil NextUpdate = 0;
 	bool updating = false;
-	async Task RealUpdate()
+	async void RealUpdate()
 	{
 		if ( updating ) return;
 		//using var _a = Profile.Scope( "Sandworld::Update" );
