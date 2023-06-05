@@ -240,7 +240,7 @@ public class SandWorld
 
 	TimeSince LastUpdate = 0;
 
-	[ConCmd.Client]
+	//[ConCmd.Client]
 	public static void SetCellClient( int x, int y, Type type )
 	{
 		if ( !Instance.InBounds( new Vector2Int( x, y ) ) )
@@ -339,7 +339,7 @@ public class SandWorld
 	}
 	//TimeUntil NextUpdate = 0;
 	bool updating = false;
-	async void RealUpdate()
+	public async void RealUpdate()
 	{
 		if ( updating ) return;
 		//using var _a = Profile.Scope( "Sandworld::Update" );
@@ -375,7 +375,7 @@ public class SandWorld
 			}
 			totalamountofcells += chunk.Value.cells.Count;
 		}
-		DebugOverlay.ScreenText( $"Active Threads: {tasks.Count}  \n :: {totalamountofcells}", new Vector2( Screen.Width - 300, 50 ), 0.1f );
+		//DebugOverlay.ScreenText( $"Active Threads: {tasks.Count}  \n :: {totalamountofcells}", new Vector2( Screen.Width - 300, 50 ), 0.1f );
 		await GameTask.WhenAll( tasks.ToArray() );
 		tasks.Clear();
 
@@ -403,7 +403,7 @@ public class SandWorld
 		RemoveEmptyChunks();
 
 		sw.Stop();
-		DebugOverlay.ScreenText( $"Sandworld::Update {sw.ElapsedMilliseconds}ms", new Vector2( Screen.Width - 300, 30 ), sw.Elapsed.Seconds * 2f );
+		//DebugOverlay.ScreenText( $"Sandworld::Update {sw.ElapsedMilliseconds}ms", new Vector2( Screen.Width - 300, 30 ), sw.Elapsed.Seconds * 2f );
 
 
 		updating = false;

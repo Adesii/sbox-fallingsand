@@ -16,11 +16,6 @@
 @code {
     public static Hud Current { get; private set; }
 
-    public Hud()
-    {
-        Current = this;
-    }
-
     public void ClearWorld()
     {
         Sand.Systems.FallingSand.SandWorld.ClearGrid();

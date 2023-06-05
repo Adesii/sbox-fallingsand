@@ -5,7 +5,7 @@ namespace Sand;
 
 public partial class Player : AnimatedEntity
 {
-	public static Type LeftClick = typeof( Systems.FallingSand.Sand );
+	/* public static Type LeftClick = typeof( Systems.FallingSand.Sand );
 	public static Type RightClick = typeof( Systems.FallingSand.Water );
 
 	[ConVar.Client]
@@ -23,11 +23,11 @@ public partial class Player : AnimatedEntity
 		}
 		Log.Info( $"Set left click to {type.TargetType}" );
 		LeftClick = type.TargetType;
-	}
+	} */
 	/// <summary>
 	/// When the player is first created. This isn't called when a player respawns.
 	/// </summary>
-	public override void Spawn()
+	/* public override void Spawn()
 	{
 		Predictable = true;
 
@@ -40,8 +40,8 @@ public partial class Player : AnimatedEntity
 
 		Tags.Add( "player" );
 	}
-
-	public override void ClientSpawn()
+ */
+	/* public override void ClientSpawn()
 	{
 		base.ClientSpawn();
 		delayspawn();
@@ -50,7 +50,7 @@ public partial class Player : AnimatedEntity
 	{
 		await GameTask.DelayRealtimeSeconds( 0.2f );
 		SandWorld.ZoomToFitMap();
-	}
+	} 
 	TimeSince LastPaint = 0;
 	private Vector2Int OldPos;
 
@@ -128,6 +128,6 @@ public partial class Player : AnimatedEntity
 			dragzoom = false;
 		}
 
-	}
+	}*/
 
 }

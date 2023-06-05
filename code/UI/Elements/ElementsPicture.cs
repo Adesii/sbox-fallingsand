@@ -13,11 +13,11 @@ public partial class ElementsPicture : Panel
 	{
 		base.OnAfterTreeRender( firstTime );
 		if ( !firstTime ) return;
-		if ( Sand.Player.LeftClick == Element )
+		if ( Sand.UI.Hud.LeftClick == Element )
 		{
 			activepanel.SetClass( "active-blue", true );
 		}
-		if ( Sand.Player.RightClick == Element )
+		if ( Sand.UI.Hud.RightClick == Element )
 		{
 			activepanel.SetClass( "active-red", true );
 		}
@@ -72,13 +72,13 @@ public partial class ElementsPicture : Panel
 
 	protected override void OnClick( MousePanelEvent e )
 	{
-		Sand.Player.LeftClick = Element;
+		Sand.UI.Hud.LeftClick = Element;
 		Event.Run( "ElementSelectionChanged", Element, true );
 	}
 
 	protected override void OnRightClick( MousePanelEvent e )
 	{
-		Sand.Player.RightClick = Element;
+		Sand.UI.Hud.RightClick = Element;
 		Event.Run( "ElementSelectionChanged", Element, false );
 	}
 }

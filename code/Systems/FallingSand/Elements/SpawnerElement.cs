@@ -8,7 +8,7 @@ public class Spawner : Cell
 	{
 		CellColor = Color.FromBytes( 255, 255, 255, 255 );
 		Density = 100000;
-		element = Player.RightClick;
+		element = UI.Hud.RightClick;
 	}
 	public override Color GetColor()
 	{

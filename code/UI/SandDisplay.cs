@@ -6,7 +6,7 @@ public class SandDisplay : Panel
 {
 	public override bool HasContent => true;
 
-	[ConVar.Client]
+	//[ConVar.Client]
 	public static int ChunkDebugDraw { get; set; } = 0;
 
 	TimeSince LastDraw = 0;
@@ -48,7 +48,6 @@ public class SandDisplay : Panel
 
 			Graphics.DrawQuad( rect, Material.FromShader( "shaders/sanddrawer.shader" ), Color.White, attribs );
 		}
-
 		return;
 		/* 		float scale = (state.Height / SandWorld.WorldHeight);
 				scale *= (ComputedStyle.Height.Value.Value / 100f);

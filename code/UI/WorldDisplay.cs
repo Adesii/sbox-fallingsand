@@ -49,6 +49,7 @@ public class WorldDisplay : Panel
 		var attribs = new RenderAttributes();
 		attribs.Set( "Texture", Texture.White );
 		Graphics.DrawQuad( worldRect, Material.UI.Basic, Color.Black, attribs );
+		//Log.Info( $"WorldRect: {worldRect}" );
 	}
 }
 
